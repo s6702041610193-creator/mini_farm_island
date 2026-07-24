@@ -777,10 +777,10 @@
             });
         }
 
-        // --- ISLAND GENERATION ---
-        function createIsland(radius, x, z) {
+        // --- FLOATING ISLAND GENERATION ---
+        function createIsland(radius, x, y, z) {
             const group = new THREE.Group();
-            group.position.set(x, -2, z);
+            group.position.set(x, y, z);
             
             const topGeo = new THREE.CylinderGeometry(radius, radius*0.92, 2, 40);
             const top = new THREE.Mesh(topGeo, materials.grass);
@@ -789,55 +789,81 @@
             top.castShadow = true;
             group.add(top);
 
-            const botGeo = new THREE.CylinderGeometry(radius*0.92, radius*0.5, 3.5, 40);
+            const botGeo = new THREE.CylinderGeometry(radius*0.92, radius*0.4, 4.5, 40);
             const bot = new THREE.Mesh(botGeo, materials.sand);
-            bot.position.y = -1.75;
+            bot.position.y = -2.25;
             group.add(bot);
 
             scene.add(group);
-            return group;
+            return { group, x, ySurface: y + 2, z, radius };
         }
 
-        const mainIsland = createIsland(24, 0, 0);         
-        const northIsland = createIsland(11, 0, -32);      
-        const eastIsland = createIsland(11, 31, 5);        
-        const westIsland = createIsland(10, -31, 5);       
+        // 4 True Floating Islands at different elevations
+        const mainIsland  = createIsland(25,   0, -2.0,   0); // Ground at y=0
+        const northIsland = createIsland(12,   0,  0.5, -36); // Floating elevated (y=2.5)
+        const eastIsland  = createIsland(12,  35, -2.5,   8); // Floating lower (y=-0.5)
+        const westIsland  = createIsland(11, -35, -0.5,   8); // Floating mid (y=1.5)
 
-        function createBridge(x1, z1, x2, z2) {
-            const dx = x2 - x1;
-            const dz = z2 - z1;
-            const dist = Math.sqrt(dx*dx + dz*dz) - 18;
-            const cx = (x1 + x2) / 2;
-            const cz = (z1 + z2) / 2;
-            const angle = Math.atan2(dx, dz);
+        // --- SUSPENSION FLOATING BRIDGES ---
+        function createFloatingBridge(is1, is2) {
+            const dx = is2.x - is1.x;
+            const dy = is2.ySurface - is1.ySurface;
+            const dz = is2.z - is1.z;
+            const totalDist = Math.sqrt(dx*dx + dz*dz);
             
-            const bridgeGroup = new THREE.Group();
-            bridgeGroup.position.set(cx, -0.1, cz);
-            bridgeGroup.rotation.y = angle;
+            const edge1X = is1.x + (dx / totalDist) * (is1.radius - 1);
+            const edge1Z = is1.z + (dz / totalDist) * (is1.radius - 1);
+            const edge2X = is2.x - (dx / totalDist) * (is2.radius - 1);
+            const edge2Z = is2.z - (dz / totalDist) * (is2.radius - 1);
 
-            const plankGeo = new THREE.BoxGeometry(3.2, 0.4, dist);
+            const bridgeDist = Math.sqrt((edge2X-edge1X)*(edge2X-edge1X) + (edge2Z-edge1Z)*(edge2Z-edge1Z));
+            const cx = (edge1X + edge2X) / 2;
+            const cy = (is1.ySurface + is2.ySurface) / 2 - 0.2;
+            const cz = (edge1Z + edge2Z) / 2;
+            const angleY = Math.atan2(dx, dz);
+            const angleX = Math.atan2(dy, Math.sqrt(dx*dx + dz*dz));
+
+            const bridgeGroup = new THREE.Group();
+            bridgeGroup.position.set(cx, cy, cz);
+            bridgeGroup.rotation.y = angleY;
+            bridgeGroup.rotation.x = -angleX;
+
+            // Wooden Planks
+            const plankGeo = new THREE.BoxGeometry(3.2, 0.35, bridgeDist);
             const planks = new THREE.Mesh(plankGeo, materials.wood);
             planks.receiveShadow = true;
             planks.castShadow = true;
             bridgeGroup.add(planks);
 
-            const railGeo = new THREE.CylinderGeometry(0.1, 0.1, dist);
+            // Support Pillars at ends
+            for(let zOff of [-bridgeDist/2, bridgeDist/2]) {
+                for(let xOff of [-1.5, 1.5]) {
+                    const post = new THREE.Mesh(new THREE.BoxGeometry(0.3, 1.6, 0.3), materials.woodLight);
+                    post.position.set(xOff, 0.8, zOff);
+                    post.castShadow = true;
+                    bridgeGroup.add(post);
+                }
+            }
+
+            // Rope Handrails
+            const railGeo = new THREE.CylinderGeometry(0.08, 0.08, bridgeDist);
             const r1 = new THREE.Mesh(railGeo, materials.woodLight);
             r1.rotation.x = Math.PI / 2;
-            r1.position.set(-1.5, 1.1, 0);
+            r1.position.set(-1.5, 1.4, 0);
             bridgeGroup.add(r1);
 
             const r2 = r1.clone();
-            r2.position.set(1.5, 1.1, 0);
+            r2.position.set(1.5, 1.4, 0);
             bridgeGroup.add(r2);
 
             scene.add(bridgeGroup);
         }
-        createBridge(0, 0, 0, -32);
-        createBridge(0, 0, 31, 5);
-        createBridge(0, 0, -31, 5);
 
-        // --- MAP DECORATIONS & PROPS ---
+        createFloatingBridge(mainIsland, northIsland);
+        createFloatingBridge(mainIsland, eastIsland);
+        createFloatingBridge(mainIsland, westIsland);
+
+        // --- MAP DECORATIONS & RICH PROPS ---
         function createPath(x, z, sx, sz) {
             const path = new THREE.Mesh(new THREE.BoxGeometry(sx, 0.02, sz), new THREE.MeshLambertMaterial({ color: 0xc2b280 }));
             path.position.set(x, 0.01, z);
@@ -847,8 +873,9 @@
         createPath(0, -3, 3, 10);  
         createPath(-6, -5, 10, 3); 
 
+        // 1. WINDMILL & WHEAT (North Island y=2.5)
         const windmillGroup = new THREE.Group();
-        windmillGroup.position.set(0, 0, -32);
+        windmillGroup.position.set(0, 2.5, -36);
 
         const wmTowerGeo = new THREE.CylinderGeometry(2.2, 3.2, 8, 8);
         const wmTower = new THREE.Mesh(wmTowerGeo, materials.houseWall);
@@ -874,8 +901,9 @@
         windmillGroup.add(bladesGroup);
         scene.add(windmillGroup);
 
+        // 2. MARKET STALL & FISHING PIER (East Island y=-0.5)
         const marketGroup = new THREE.Group();
-        marketGroup.position.set(31, 0, 5);
+        marketGroup.position.set(35, -0.5, 8);
 
         const stallCounter = new THREE.Mesh(new THREE.BoxGeometry(4.5, 1.8, 2.2), materials.wood);
         stallCounter.position.y = 0.9;
@@ -893,18 +921,17 @@
             marketGroup.add(pole);
         }
 
-        function createCrate(x, z) {
-            const crate = new THREE.Mesh(new THREE.BoxGeometry(1.1, 1.1, 1.1), materials.woodLight);
-            crate.position.set(x, 0.55, z);
-            crate.castShadow = true;
-            marketGroup.add(crate);
-        }
-        createCrate(-3, 0.8);
-        createCrate(3, 0.4);
+        // Fishing Dock extending over water
+        const pierMesh = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.3, 7), materials.wood);
+        pierMesh.position.set(5, -0.1, 0);
+        pierMesh.rotation.y = Math.PI / 2;
+        marketGroup.add(pierMesh);
+
         scene.add(marketGroup);
 
+        // 3. SAKURA TREE & CAMPFIRE (West Island y=1.5)
         const sakuraGroup = new THREE.Group();
-        sakuraGroup.position.set(-31, 0, 5);
+        sakuraGroup.position.set(-35, 1.5, 8);
 
         const sTrunk = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.8, 3.5, 8), materials.wood);
         sTrunk.position.y = 1.75;
@@ -921,9 +948,30 @@
         bench.castShadow = true;
         sakuraGroup.add(bench);
 
+        // Campfire
+        const fireRing = new THREE.Mesh(new THREE.TorusGeometry(0.8, 0.2, 8, 12), materials.stone);
+        fireRing.rotation.x = Math.PI / 2;
+        fireRing.position.set(-3, 0.1, 0);
+        sakuraGroup.add(fireRing);
+
         scene.add(sakuraGroup);
 
-        function createTree(x, z, scale=1) {
+        // 4. HOT AIR BALLOON (Floating in Sky)
+        const balloonGroup = new THREE.Group();
+        balloonGroup.position.set(20, 28, -10);
+
+        const balloonSphere = new THREE.Mesh(new THREE.SphereGeometry(3.5, 16, 16), new THREE.MeshLambertMaterial({ color: 0xf59e0b }));
+        balloonSphere.position.y = 5;
+        balloonGroup.add(balloonSphere);
+
+        const basket = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.2, 1.5), materials.wood);
+        basket.position.y = 0;
+        balloonGroup.add(basket);
+
+        scene.add(balloonGroup);
+
+        // Trees & Apple Trees on Main Island
+        function createTree(x, z, scale=1, hasApples=false) {
             const group = new THREE.Group();
             const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.5, 2.2), materials.wood);
             trunk.position.y = 1.1;
@@ -935,14 +983,23 @@
             leaves.castShadow = true;
             group.add(leaves);
 
+            if(hasApples) {
+                const appleMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
+                for(let i=0; i<4; i++) {
+                    const apple = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 8), appleMat);
+                    apple.position.set((Math.random()-0.5)*1.5, 3.5 + Math.random(), (Math.random()-0.5)*1.5);
+                    group.add(apple);
+                }
+            }
+
             group.position.set(x, 0, z);
             group.scale.set(scale, scale, scale);
             scene.add(group);
         }
-        createTree(-14, -10, 1.1);
-        createTree(14, -12, 1.0);
-        createTree(-15, 10, 1.2);
-        createTree(15, 12, 1.0);
+        createTree(-14, -10, 1.1, true);
+        createTree(14, -12, 1.0, true);
+        createTree(-15, 10, 1.2, false);
+        createTree(15, 12, 1.0, false);
 
         function createRock(x, z, s) {
             const mesh = new THREE.Mesh(new THREE.DodecahedronGeometry(s, 0), materials.stone);
