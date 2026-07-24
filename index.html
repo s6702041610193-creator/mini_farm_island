@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mini Farm Island 3D - Roblox Style</title>
+    <title>Mini Farm Island 3D</title>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700&display=swap" rel="stylesheet">
     <!-- Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -12,136 +12,136 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
         * { box-sizing: border-box; user-select: none; }
-        body { margin: 0; overflow: hidden; font-family: 'Kanit', sans-serif; background: #38bdf8; }
+        body { margin: 0; overflow: hidden; font-family: 'Kanit', sans-serif; background-color: #74c7eb; }
         #canvas-container { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; }
         
         .panel {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border: 3px solid #0f172a;
-            border-radius: 18px;
-            box-shadow: 0 8px 0 #0f172a;
-            padding: 18px;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            padding: 16px;
             position: absolute;
             z-index: 10;
         }
 
-        #left-panel { top: 20px; left: 20px; width: 250px; }
-        #right-panel { top: 20px; right: 20px; width: 290px; max-height: calc(100vh - 40px); overflow-y: auto; }
+        #left-panel { top: 20px; left: 20px; width: 230px; }
+        #right-panel { top: 20px; right: 20px; width: 280px; max-height: calc(100vh - 40px); overflow-y: auto; }
         
-        .header { font-weight: 700; font-size: 18px; color: #0f172a; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between;}
-        .stat-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; background: #f1f5f9; padding: 10px; border-radius: 12px; border: 2px solid #cbd5e1; }
-        .stat-row .icon { font-size: 24px; background: #ffffff; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; border: 2px solid #94a3b8; }
-        .stat-row .label { font-size: 11px; color: #64748b; font-weight: 700; }
-        .stat-row .val { font-size: 16px; font-weight: 700; color: #0f172a; }
+        .header { font-weight: 600; font-size: 18px; color: #2c3e50; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;}
+        .stat-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+        .stat-row .icon { font-size: 22px; background: #f0f3f4; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .stat-row .label { font-size: 11px; color: #7f8c8d; }
+        .stat-row .val { font-size: 15px; font-weight: 600; color: #2c3e50; }
         
         button {
-            width: 100%; padding: 12px; border: 2px solid #0f172a; border-radius: 12px;
-            font-family: 'Kanit', sans-serif; font-size: 14px; font-weight: 700;
-            cursor: pointer; transition: all 0.15s;
-            box-shadow: 0 4px 0 #0f172a;
-            display: flex; align-items: center; justify-content: center; gap: 6px;
+            width: 100%; padding: 12px; border: none; border-radius: 10px;
+            font-family: 'Kanit', sans-serif; font-size: 14px; font-weight: 600;
+            cursor: pointer; transition: transform 0.1s, opacity 0.2s;
         }
-        button:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #0f172a; }
-        button:active { transform: translateY(2px); box-shadow: 0 2px 0 #0f172a; }
+        button:active { transform: scale(0.96); }
         
-        .btn-sell { background: #f59e0b; color: white; margin-top: 6px; }
-        .btn-save { background: #10b981; color: white; margin-top: 10px; }
+        .btn-sell { background-color: #f1c40f; color: #333; margin-top: 5px; box-shadow: 0 4px 10px rgba(241,196,15,0.3); }
+        .btn-sell:hover { opacity: 0.9; }
+        .btn-save { background-color: #2ecc71; color: white; margin-top: 8px; box-shadow: 0 4px 10px rgba(46,204,113,0.3); }
+        .btn-save:hover { opacity: 0.9; }
         
-        .hint { font-size: 11px; color: #64748b; text-align: center; margin-top: 8px; font-weight: 600; }
+        .hint { font-size: 10px; color: #95a5a6; text-align: center; margin-top: 6px; }
 
         .user-badge {
-            background: #e2e8f0; border-radius: 12px; padding: 4px 10px; font-size: 12px; color: #0f172a; font-weight: 700; border: 1.5px solid #94a3b8;
+            background: #e2e8f0; border-radius: 20px; padding: 4px 10px; font-size: 12px; color: #334155; font-weight: 600;
+            display: inline-flex; align-items: center; gap: 4px;
         }
 
-        .tabs { display: flex; margin-bottom: 16px; border-bottom: 3px solid #e2e8f0; gap: 6px; }
-        .tab { flex: 1; text-align: center; padding: 8px 0; cursor: pointer; font-weight: 700; color: #94a3b8; font-size: 14px; position: relative;}
-        .tab.active { color: #10b981; }
-        .tab.active::after { content: ''; position: absolute; bottom: -3px; left: 0; width: 100%; height: 3px; background: #10b981; }
+        /* Tabs */
+        .tabs { display: flex; margin-bottom: 15px; border-bottom: 2px solid #ecf0f1; }
+        .tab { flex: 1; text-align: center; padding: 8px 0; cursor: pointer; font-weight: 600; color: #95a5a6; font-size: 14px; position: relative;}
+        .tab.active { color: #2ecc71; }
+        .tab.active::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 2px; background: #2ecc71; }
 
+        /* Items */
         .item-card {
-            background: #ffffff; border: 2px solid #cbd5e1;
-            border-radius: 12px; padding: 12px; margin-bottom: 12px;
+            background: #fff; border: 1.5px solid #e2e8f0;
+            border-radius: 10px; padding: 10px 12px; margin-bottom: 10px;
             cursor: pointer; display: flex; flex-direction: column; gap: 4px;
-            transition: all 0.15s;
+            transition: all 0.2s;
         }
-        .item-card:hover { border-color: #38bdf8; transform: translateY(-2px); }
-        .item-card.selected { border-color: #10b981; background: #f0fdf4; box-shadow: 0 4px 0 #10b981; }
+        .item-card.selected { border-color: #2ecc71; background: #f0fdf4; box-shadow: 0 2px 8px rgba(46,204,113,0.2); }
         .item-card.disabled { opacity: 0.5; pointer-events: none; }
         .item-row { display: flex; justify-content: space-between; align-items: center; }
-        .item-title { font-weight: 700; font-size: 14px; color: #0f172a; }
-        .item-detail { font-size: 12px; color: #64748b; font-weight: 600; }
-        .text-green { color: #10b981; font-weight: 700; }
-        .text-red { color: #ef4444; font-weight: 700; }
+        .item-title { font-weight: 600; font-size: 14px; color: #2c3e50; }
+        .item-detail { font-size: 12px; color: #7f8c8d; }
+        .text-green { color: #2ecc71; font-weight: 600; }
+        .text-red { color: #e74c3c; font-weight: 600; }
 
+        /* Bottom Guide */
         #bottom-guide {
             position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-            background: #0f172a; color: white; padding: 12px 26px;
-            border-radius: 20px; font-size: 13px; z-index: 10; border: 2px solid #38bdf8;
-            box-shadow: 0 6px 0 rgba(0,0,0,0.3); display: flex; gap: 16px; align-items: center;
+            background: rgba(44, 62, 80, 0.88); color: white; padding: 10px 24px;
+            border-radius: 30px; font-size: 13px; z-index: 10; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            backdrop-filter: blur(4px); display: flex; gap: 8px; align-items: center;
         }
-        #bottom-guide span.key { background: #334155; padding: 2px 8px; border-radius: 6px; color: #f8fafc; font-size: 11px; font-weight: 700; border: 1px solid #475569; }
-        #bottom-guide span.highlight { color: #fbbf24; font-weight: 700; }
+        #bottom-guide span.highlight { color: #f1c40f; font-weight: 600; }
 
+        /* Quiz Modal */
         #quiz-modal {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.85);
-            width: 360px; text-align: center; opacity: 0; pointer-events: none;
-            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8);
+            width: 350px; text-align: center; opacity: 0; pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         #quiz-modal.show { opacity: 1; transform: translate(-50%, -50%) scale(1); pointer-events: auto; }
-        .quiz-header { font-size: 18px; font-weight: 700; color: #0284c7; margin-bottom: 4px;}
-        .quiz-sub { font-size: 12px; color: #64748b; margin-bottom: 14px;}
-        .quiz-question { background: #f1f5f9; padding: 18px; border-radius: 14px; font-size: 30px; font-weight: 700; color: #0f172a; margin-bottom: 14px; border: 2px solid #cbd5e1;}
-        .quiz-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;}
-        .btn-option { background: #0284c7; color: white; font-size: 16px; padding: 12px; border-radius: 10px; }
-        .btn-close { background: #ef4444; color: white; font-size: 12px; padding: 8px 20px; border-radius: 20px; width: auto; display: inline-block;}
+        .quiz-header { font-size: 16px; font-weight: 600; color: #2980b9; margin-bottom: 4px;}
+        .quiz-sub { font-size: 12px; color: #7f8c8d; margin-bottom: 15px;}
+        .quiz-question { background: #f4f6f7; padding: 18px; border-radius: 12px; font-size: 28px; font-weight: 600; color: #2c3e50; margin-bottom: 15px;}
+        .quiz-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;}
+        .btn-option { background-color: #3498db; color: white; font-size: 16px; padding: 12px; border-radius: 8px; }
+        .btn-close { background-color: #e74c3c; color: white; font-size: 12px; padding: 8px 20px; border-radius: 20px; width: auto; display: inline-block;}
 
+        /* Floating Elements */
         .floating-label {
             position: absolute; transform: translate(-50%, -100%);
-            background: #0f172a; color: #38bdf8; padding: 6px 14px; border-radius: 14px; border: 2px solid #38bdf8;
-            font-weight: 700; font-size: 12px; pointer-events: none; z-index: 5; text-align: center;
-            box-shadow: 0 4px 0 #0f172a;
+            background: #2c3e50; color: #f1c40f; padding: 4px 12px; border-radius: 12px; border: 2px solid #f1c40f;
+            font-weight: 600; font-size: 12px; pointer-events: none; z-index: 5; text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
-
         .floating-text-anim {
-            position: absolute; font-weight: 700; font-size: 22px;
-            pointer-events: none; z-index: 100; text-shadow: 0 2px 4px rgba(0,0,0,0.4);
-            animation: floatUp 1.2s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+            position: absolute; font-weight: 600; font-size: 20px;
+            pointer-events: none; z-index: 100; text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+            animation: floatUp 1s ease-out forwards;
         }
         @keyframes floatUp {
-            0% { transform: translate(-50%, 0) scale(0.6); opacity: 0; }
-            20% { transform: translate(-50%, -10px) scale(1.2); opacity: 1; }
-            100% { transform: translate(-50%, -60px) scale(1); opacity: 0; }
+            0% { transform: translate(-50%, 0); opacity: 1; }
+            100% { transform: translate(-50%, -50px); opacity: 0; }
         }
         
+        /* Auth Overlay & Form */
         #auth-overlay {
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: radial-gradient(circle at center, #38bdf8 0%, #0284c7 100%);
-            z-index: 999; display: flex; justify-content: center; align-items: center; flex-direction: column; color: white;
+            background: radial-gradient(circle, #38bdf8 0%, #0369a1 100%); z-index: 999; display: flex;
+            justify-content: center; align-items: center; flex-direction: column; color: white;
         }
         .auth-card {
-            background: #ffffff; color: #0f172a; width: 380px; padding: 28px; border-radius: 24px;
-            box-shadow: 0 12px 0 #0369a1; text-align: center; border: 3px solid #0f172a;
+            background: white; color: #1e293b; width: 360px; padding: 24px; border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25); text-align: center;
         }
-        .auth-card h2 { margin-top: 0; margin-bottom: 6px; color: #0284c7; font-size: 26px; font-weight: 700; }
+        .auth-card h2 { margin-top: 0; margin-bottom: 5px; color: #0284c7; font-size: 24px; }
         .auth-card p { font-size: 13px; color: #64748b; margin-bottom: 20px; }
         
-        .auth-tabs { display: flex; margin-bottom: 20px; border-bottom: 3px solid #e2e8f0; gap: 8px; }
-        .auth-tab { flex: 1; padding: 10px; font-weight: 700; color: #94a3b8; cursor: pointer; border-radius: 8px 8px 0 0; }
-        .auth-tab.active { color: #0284c7; border-bottom: 3px solid #0284c7; }
+        .auth-tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; }
+        .auth-tab { flex: 1; padding: 10px; font-weight: 600; color: #94a3b8; cursor: pointer; }
+        .auth-tab.active { color: #0284c7; border-bottom: 2px solid #0284c7; }
         
-        .form-group { text-align: left; margin-bottom: 16px; }
-        .form-group label { font-size: 12px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px; }
+        .form-group { text-align: left; margin-bottom: 14px; }
+        .form-group label { font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px; }
         .form-group input {
-            width: 100%; padding: 12px 14px; border: 2px solid #cbd5e1; border-radius: 10px;
-            font-size: 14px; font-family: 'Kanit', sans-serif; outline: none;
+            width: 100%; padding: 10px 14px; border: 1.5px solid #cbd5e1; border-radius: 8px;
+            font-size: 14px; font-family: 'Kanit', sans-serif; outline: none; transition: border 0.2s;
         }
         .form-group input:focus { border-color: #0284c7; }
         
-        .btn-auth { background: #0284c7; color: white; font-size: 16px; padding: 12px; margin-top: 10px; border-radius: 12px; }
-        .btn-guest { background: transparent; color: #64748b; font-size: 13px; margin-top: 14px; text-decoration: underline; cursor: pointer; border: none; font-weight: 700; }
+        .btn-auth { background: #0284c7; color: white; font-size: 16px; padding: 12px; margin-top: 10px; border-radius: 10px; }
+        .btn-guest { background: transparent; color: #64748b; font-size: 13px; margin-top: 10px; text-decoration: underline; cursor: pointer; border: none; }
         
-        #auth-status { margin-top: 12px; font-size: 13px; min-height: 20px; font-weight: 700; }
+        #auth-status { margin-top: 12px; font-size: 12px; min-height: 18px; font-weight: 600; }
         .status-loading { color: #0284c7; }
         .status-success { color: #16a34a; }
         .status-error { color: #dc2626; }
@@ -149,11 +149,11 @@
 </head>
 <body>
 
-    <!-- Auth / Login Overlay -->
+    <!-- Auth / Login Modal Overlay -->
     <div id="auth-overlay">
         <div class="auth-card">
-            <h2>🧱 Roblox Mini Farm 3D</h2>
-            <p>ระบบสมาชิกร่วมกับ Google Sheets Sync</p>
+            <h2>🌾 Mini Farm Island 3D</h2>
+            <p>ระบบสมาชิก & บันทึกข้อมูล Google Sheet</p>
             
             <div class="auth-tabs">
                 <div class="auth-tab active" id="tab-btn-login" onclick="switchAuthTab('login')">เข้าสู่ระบบ</div>
@@ -177,7 +177,7 @@
             <form id="form-register" style="display:none;" onsubmit="handleAuth(event, 'register')">
                 <div class="form-group">
                     <label>ชื่อแสดงในเกม (Display Name)</label>
-                    <input type="text" id="reg-name" placeholder="เช่น Robloxian" required>
+                    <input type="text" id="reg-name" placeholder="เช่น Farmer John" required>
                 </div>
                 <div class="form-group">
                     <label>ชื่อผู้ใช้ (Username)</label>
@@ -187,12 +187,12 @@
                     <label>รหัสผ่าน (Password)</label>
                     <input type="password" id="reg-password" placeholder="ตั้งรหัสผ่าน" required>
                 </div>
-                <button type="submit" class="btn-auth" style="background: #10b981;">สมัครสมาชิกใหม่ ✨</button>
+                <button type="submit" class="btn-auth" style="background:#22c55e;">สมัครสมาชิกใหม่ ✨</button>
             </form>
 
             <div id="auth-status"></div>
 
-            <button class="btn-guest" onclick="startAsGuest()">เล่นแบบไม่ลงชื่อเข้าใช้ (Guest Mode)</button>
+            <button class="btn-guest" onclick="startAsGuest()">เล่นแบบไม่ลงชื่อเข้าใช้ (Guest)</button>
         </div>
     </div>
 
@@ -201,14 +201,14 @@
     <!-- UI Left -->
     <div id="left-panel" class="panel">
         <div class="header">
-            <span>🏡 Roblox Farm</span>
+            <span>🌿 Mini Farm Island</span>
             <span class="user-badge" id="ui-user">👤 Guest</span>
         </div>
         <div class="stat-row">
             <div class="icon">🪙</div>
             <div class="info">
-                <div class="label">เหรียญทอง</div>
-                <div class="val"><span id="ui-money">100</span> 🪙</div>
+                <div class="label">เงินสะสม</div>
+                <div class="val"><span id="ui-money">100</span> เหรียญ</div>
             </div>
         </div>
         <div class="stat-row">
@@ -218,9 +218,9 @@
                 <div class="val"><span id="ui-inventory">0</span> ชิ้น</div>
             </div>
         </div>
-        <button class="btn-sell" onclick="sellAll()">💰 ขายผลผลิตทั้งหมด</button>
+        <button class="btn-sell" onclick="sellAll()">ขายผลผลิตทั้งหมด</button>
         <button class="btn-save" onclick="saveGame(false)">💾 บันทึกเกม (Save Game)</button>
-        <div class="hint">ระบบ Auto Save ทำงานเมื่อปิดหน้าต่าง</div>
+        <div class="hint">ปลูกพืชเพื่อเก็บเกี่ยว</div>
     </div>
 
     <!-- UI Right -->
@@ -238,7 +238,7 @@
                 </div>
                 <div class="item-row">
                     <span class="item-detail text-red">ปลูก: -10 🪙</span>
-                    <span class="item-detail">⏱️ 5 วิ</span>
+                    <span class="item-detail">5 วิ</span>
                 </div>
             </div>
             <div class="item-card" onclick="selectSeed('carrot', this)">
@@ -248,7 +248,7 @@
                 </div>
                 <div class="item-row">
                     <span class="item-detail text-red">ปลูก: -20 🪙</span>
-                    <span class="item-detail">⏱️ 8 วิ</span>
+                    <span class="item-detail">8 วิ</span>
                 </div>
             </div>
             <div class="item-card" onclick="selectSeed('cabbage', this)">
@@ -258,7 +258,7 @@
                 </div>
                 <div class="item-row">
                     <span class="item-detail text-red">ปลูก: -50 🪙</span>
-                    <span class="item-detail">⏱️ 12 วิ</span>
+                    <span class="item-detail">12 วิ</span>
                 </div>
             </div>
         </div>
@@ -296,15 +296,13 @@
 
     <!-- Bottom Guide -->
     <div id="bottom-guide">
-        <div>เดินข้ามสะพาน: <span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span> หรือ <span class="key">ลูกศร</span></div>
-        <div>|</div>
-        <div>เลือกเมล็ด → คลิกแปลงผัก <span class="highlight">ปลูก</span> → รอโต → คลิก <span class="highlight">เก็บเกี่ยว</span></div>
+        เลือกเมล็ด → คลิกแปลงดิน <span class="highlight">ปลูก</span> → รอต้นโตเต็มที่ → คลิก <span class="highlight">เก็บเกี่ยว</span>
     </div>
 
     <!-- Quiz Modal -->
     <div id="quiz-modal" class="panel">
-        <div class="quiz-header">💧 บ่อน้ำมนตร์วิเศษ</div>
-        <div class="quiz-sub">ตอบคำถามถูกรับบัฟสปรินเกลอร์โตไว 1.5x (10 วิ)!</div>
+        <div class="quiz-header">🤖 หุ่นยนต์ช่วยรดน้ำ</div>
+        <div class="quiz-sub">ตอบคำถามถูกรับบัฟโตไว 1.5x เป็นเวลา 10 วิ!</div>
         <div class="quiz-question" id="quiz-q">44 + 33 = ?</div>
         <div class="quiz-options">
             <button class="btn-option" onclick="answerQuiz(0)" id="ans-0">74</button>
@@ -315,8 +313,8 @@
         <button class="btn-close" onclick="closeQuiz()">ปิดหน้าต่าง</button>
     </div>
 
-    <!-- Well Label -->
-    <div id="well-label" class="floating-label">บ่อน้ำ QUIZ 💧</div>
+    <!-- Robot Label -->
+    <div id="robot-label" class="floating-label">QUIZ 🤖</div>
 
     <script>
         // --- GOOGLE SHEETS & AUTH INTEGRATION ---
@@ -452,7 +450,7 @@
                 }
             }
 
-            showFloatingText(isAuto ? "Auto Saved 💾" : "บันทึกเกมเรียบร้อย 💾", "#10b981", window.innerWidth/2, 60);
+            showFloatingText(isAuto ? "Auto Saved 💾" : "บันทึกเกมเรียบร้อย 💾", "#2ecc71", window.innerWidth/2, 60);
         }
 
         async function loadSavedGame() {
@@ -489,13 +487,13 @@
                             if(pMesh.userData.state === 'locked') {
                                 pMesh.material = materials.plotLocked;
                             } else {
-                                pMesh.material = new THREE.MeshLambertMaterial({ color: 0x854d0e });
+                                pMesh.material = materials.plotEmpty;
                             }
                         }
                     });
                 }
                 updateUI();
-                showFloatingText("โหลดข้อมูลเกมสำเร็จ 🎮", "#38bdf8", window.innerWidth/2, 100);
+                showFloatingText("โหลดข้อมูลเกมสำเร็จ 🎮", "#3498db", window.innerWidth/2, 100);
             }
         }
 
@@ -513,15 +511,15 @@
             selectedSeed: 'tomato',
             houseLevel: 1,
             buffTime: 0,
-            wellState: 'ready',
-            wellTimer: 0,
+            robotState: 'ready', // ready, broken, buff
+            robotTimer: 0,
             quizAnswer: 0
         };
 
         const Plants = {
-            tomato: { cost: 10, sell: 25, time: 5, color: 0xef4444, geo: 'sphere' },
-            carrot: { cost: 20, sell: 60, time: 8, color: 0xf97316, geo: 'cone' },
-            cabbage: { cost: 50, sell: 200, time: 12, color: 0x22c55e, geo: 'dodecahedron' }
+            tomato: { cost: 10, sell: 25, time: 5, color: 0xe74c3c, geo: 'sphere' },
+            carrot: { cost: 20, sell: 60, time: 8, color: 0xe67e22, geo: 'cone' },
+            cabbage: { cost: 50, sell: 200, time: 12, color: 0x2ecc71, geo: 'dodecahedron' }
         };
 
         // --- TONE.JS AUDIO ---
@@ -564,14 +562,14 @@
             }
         }
 
-        // --- THREE.JS ROBLOX STYLE GRAPHICS ---
+        // --- THREE.JS SCENE SETUP ---
         const container = document.getElementById('canvas-container');
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x38bdf8);
-        scene.fog = new THREE.FogExp2(0x38bdf8, 0.005);
+        scene.background = new THREE.Color(0x74c7eb);
+        scene.fog = new THREE.FogExp2(0x74c7eb, 0.007);
 
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(0, 36, 48);
+        camera.position.set(0, 32, 45);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -585,51 +583,51 @@
         controls.dampingFactor = 0.05;
         controls.maxPolarAngle = Math.PI / 2 - 0.05;
         controls.minDistance = 15;
-        controls.maxDistance = 100;
+        controls.maxDistance = 90;
         controls.target.set(0, 0, 0);
 
-        // LIGHTING
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
+        // --- LIGHTING ---
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.65);
         scene.add(ambientLight);
 
-        const dirLight = new THREE.DirectionalLight(0xfffaed, 0.95);
-        dirLight.position.set(45, 75, 45);
+        const dirLight = new THREE.DirectionalLight(0xfffaed, 0.85);
+        dirLight.position.set(40, 60, 30);
         dirLight.castShadow = true;
         dirLight.shadow.mapSize.width = 2048;
         dirLight.shadow.mapSize.height = 2048;
         dirLight.shadow.camera.near = 0.5;
-        dirLight.shadow.camera.far = 160;
-        const d = 60;
+        dirLight.shadow.camera.far = 150;
+        const d = 50;
         dirLight.shadow.camera.left = -d;
         dirLight.shadow.camera.right = d;
         dirLight.shadow.camera.top = d;
         dirLight.shadow.camera.bottom = -d;
         scene.add(dirLight);
 
-        // MATERIALS
+        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x3d7042, 0.35);
+        scene.add(hemiLight);
+
+        // --- MATERIALS ---
         const materials = {
-            grass: new THREE.MeshLambertMaterial({ color: 0x4ade80 }),
-            sand: new THREE.MeshLambertMaterial({ color: 0xfde047 }),
-            water: new THREE.MeshLambertMaterial({ color: 0x0284c7, transparent: true, opacity: 0.8 }),
-            wood: new THREE.MeshLambertMaterial({ color: 0x92400e }),
-            woodLight: new THREE.MeshLambertMaterial({ color: 0xd97706 }),
-            stone: new THREE.MeshLambertMaterial({ color: 0x64748b }),
-            leaf: new THREE.MeshLambertMaterial({ color: 0x16a34a }),
-            sakuraLeaf: new THREE.MeshLambertMaterial({ color: 0xf472b6 }),
+            grass: new THREE.MeshLambertMaterial({ color: 0x8ef067 }),
+            sand: new THREE.MeshLambertMaterial({ color: 0xf3e29f }),
+            water: new THREE.MeshLambertMaterial({ color: 0x48cae4, transparent: true, opacity: 0.75 }),
+            wood: new THREE.MeshLambertMaterial({ color: 0x8d5b4c }),
+            woodLight: new THREE.MeshLambertMaterial({ color: 0xba8c63 }),
+            stone: new THREE.MeshLambertMaterial({ color: 0x95a5a6 }),
+            leaf: new THREE.MeshLambertMaterial({ color: 0x27ae60 }),
             houseWall: new THREE.MeshLambertMaterial({ color: 0xfff7ed }),
             houseRoof1: new THREE.MeshLambertMaterial({ color: 0xea580c }),
             houseRoof2: new THREE.MeshLambertMaterial({ color: 0x0284c7 }),
             houseRoof3: new THREE.MeshLambertMaterial({ color: 0x7c3aed }),
-            plotEmpty: new THREE.MeshLambertMaterial({ color: 0x78350f }),
-            plotLocked: new THREE.MeshLambertMaterial({ color: 0x334155 }),
-            skin: new THREE.MeshLambertMaterial({ color: 0xfde047 }), // Classic Roblox Yellow Skin!
-            shirt: new THREE.MeshLambertMaterial({ color: 0xef4444 }),
-            pants: new THREE.MeshLambertMaterial({ color: 0x1d4ed8 }),
-            strawHat: new THREE.MeshLambertMaterial({ color: 0xfacc15 })
+            plotEmpty: new THREE.MeshLambertMaterial({ color: 0x5d4037 }),
+            plotLocked: new THREE.MeshLambertMaterial({ color: 0x475569 }),
+            robotBody: new THREE.MeshLambertMaterial({ color: 0xbdc3c7 }),
+            robotBase: new THREE.MeshLambertMaterial({ color: 0x3498db })
         };
 
-        // WATER OCEAN
-        const waterGeo = new THREE.PlaneGeometry(350, 350, 40, 40);
+        // --- WATER OCEAN ---
+        const waterGeo = new THREE.PlaneGeometry(300, 300, 40, 40);
         const water = new THREE.Mesh(waterGeo, materials.water);
         water.rotation.x = -Math.PI / 2;
         water.position.y = -2.5;
@@ -640,161 +638,97 @@
         for (let i = 0; i < posAttribute.count; i++) {
             waterVertices.push({
                 x: posAttribute.getX(i), y: posAttribute.getY(i), z: posAttribute.getZ(i),
-                ang: Math.random() * Math.PI * 2, amp: 0.18, speed: 0.02
+                ang: Math.random() * Math.PI * 2, amp: 0.15 + Math.random() * 0.2, speed: 0.015 + Math.random() * 0.02
             });
         }
 
-        // ISLAND GENERATION
+        // --- ISLAND GENERATION ---
         function createIsland(radius, x, z) {
             const group = new THREE.Group();
             group.position.set(x, -2, z);
             
-            const topGeo = new THREE.CylinderGeometry(radius, radius*0.94, 2, 44);
+            const topGeo = new THREE.CylinderGeometry(radius, radius*0.9, 2, 40);
             const top = new THREE.Mesh(topGeo, materials.grass);
             top.position.y = 1;
             top.receiveShadow = true;
             top.castShadow = true;
             group.add(top);
 
-            const botGeo = new THREE.CylinderGeometry(radius*0.94, radius*0.5, 3.5, 44);
+            const botGeo = new THREE.CylinderGeometry(radius*0.9, radius*0.5, 3, 40);
             const bot = new THREE.Mesh(botGeo, materials.sand);
-            bot.position.y = -1.75;
+            bot.position.y = -1.5;
             group.add(bot);
 
             scene.add(group);
             return group;
         }
 
-        const mainIsland = createIsland(26, 0, 0);         
-        const northIsland = createIsland(12, 0, -34);      
-        const eastIsland = createIsland(12, 33, 5);        
-        const westIsland = createIsland(11, -33, 5);       
+        // 4 Circular Islands
+        createIsland(25, 0, 0); // Main island larger
+        createIsland(10, -35, -20);
+        createIsland(8, 35, -15);
+        createIsland(9, -20, 35);
 
-        // ROBLOX WIDE CROSSING BRIDGES
-        function createBridge(x1, z1, x2, z2) {
-            const dx = x2 - x1;
-            const dz = z2 - z1;
-            const dist = Math.sqrt(dx*dx + dz*dz) - 18;
-            const cx = (x1 + x2) / 2;
-            const cz = (z1 + z2) / 2;
-            const angle = Math.atan2(dx, dz);
-            
-            const bridgeGroup = new THREE.Group();
-            bridgeGroup.position.set(cx, 0, cz);
-            bridgeGroup.rotation.y = angle;
-
-            // Plank deck
-            const plankGeo = new THREE.BoxGeometry(4.2, 0.4, dist + 2);
-            const planks = new THREE.Mesh(plankGeo, materials.wood);
-            planks.receiveShadow = true;
-            planks.castShadow = true;
-            bridgeGroup.add(planks);
-
-            // Handrails
-            const railGeo = new THREE.BoxGeometry(0.2, 1.2, dist + 2);
-            const r1 = new THREE.Mesh(railGeo, materials.woodLight);
-            r1.position.set(-2, 0.7, 0);
-            bridgeGroup.add(r1);
-
-            const r2 = r1.clone();
-            r2.position.set(2, 0.7, 0);
-            bridgeGroup.add(r2);
-
-            scene.add(bridgeGroup);
+        // Rocks
+        function createRock(x, z, s) {
+            const geo = new THREE.DodecahedronGeometry(s, 0);
+            const mesh = new THREE.Mesh(geo, materials.stone);
+            mesh.position.set(x, s*0.4, z);
+            mesh.rotation.set(Math.random(), Math.random(), Math.random());
+            mesh.castShadow = true;
+            scene.add(mesh);
         }
-        createBridge(0, 0, 0, -34);
-        createBridge(0, 0, 33, 5);
-        createBridge(0, 0, -33, 5);
+        createRock(-12, 10, 0.8);
+        createRock(14, 5, 0.6);
+        createRock(-15, -15, 1);
+        createRock(18, -12, 0.7);
 
-        // MAP PROPS
-        function createPath(x, z, sx, sz) {
-            const path = new THREE.Mesh(new THREE.BoxGeometry(sx, 0.02, sz), new THREE.MeshLambertMaterial({ color: 0xd97706 }));
-            path.position.set(x, 0.01, z);
-            path.receiveShadow = true;
-            scene.add(path);
+        // Trees with wind sway animation
+        const trees = [];
+        function createTree(x, z, scale=1) {
+            const group = new THREE.Group();
+            const trunkGeo = new THREE.CylinderGeometry(0.3, 0.5, 2);
+            const trunk = new THREE.Mesh(trunkGeo, materials.wood);
+            trunk.position.y = 1;
+            trunk.castShadow = true;
+            group.add(trunk);
+
+            const leavesGeo = new THREE.ConeGeometry(2, 4, 6);
+            const leaves = new THREE.Mesh(leavesGeo, materials.leaf);
+            leaves.position.y = 4;
+            leaves.castShadow = true;
+            group.add(leaves);
+
+            group.position.set(x, 0, z);
+            group.scale.set(scale, scale, scale);
+            scene.add(group);
+            trees.push({ obj: group, originY: group.rotation.z, speed: 0.01 + Math.random()*0.01 });
         }
-        createPath(0, -3, 3.5, 10);  
-        createPath(-6, -5, 10, 3.5); 
+        createTree(-14, -6, 1.2);
+        createTree(12, -10, 0.9);
+        createTree(-18, 5, 1.1);
+        createTree(16, 12, 1.4);
 
-        // WINDMILL
-        const windmillGroup = new THREE.Group();
-        windmillGroup.position.set(0, 0, -34);
-
-        const wmTowerGeo = new THREE.CylinderGeometry(2.5, 3.5, 8, 8);
-        const wmTower = new THREE.Mesh(wmTowerGeo, materials.houseWall);
-        wmTower.position.y = 4;
-        wmTower.castShadow = true;
-        windmillGroup.add(wmTower);
-
-        const wmRoof = new THREE.Mesh(new THREE.ConeGeometry(3, 2.5, 8), materials.houseRoof1);
-        wmRoof.position.y = 9.25;
-        windmillGroup.add(wmRoof);
-
-        const bladesGroup = new THREE.Group();
-        bladesGroup.position.set(0, 7.5, 2.6);
-
-        for(let i = 0; i < 4; i++) {
-            const blade = new THREE.Mesh(new THREE.BoxGeometry(0.8, 6.5, 0.1), materials.woodLight);
-            blade.position.y = 3.25;
-            const pivot = new THREE.Group();
-            pivot.rotation.z = (Math.PI / 2) * i;
-            pivot.add(blade);
-            bladesGroup.add(pivot);
-        }
-        windmillGroup.add(bladesGroup);
-        scene.add(windmillGroup);
-
-        // MARKET
-        const marketGroup = new THREE.Group();
-        marketGroup.position.set(33, 0, 5);
-
-        const stallCounter = new THREE.Mesh(new THREE.BoxGeometry(5, 2, 2.5), materials.wood);
-        stallCounter.position.y = 1;
-        stallCounter.castShadow = true;
-        marketGroup.add(stallCounter);
-
-        const stallRoof = new THREE.Mesh(new THREE.BoxGeometry(5.4, 0.4, 3), materials.houseRoof1);
-        stallRoof.position.y = 3.8;
-        marketGroup.add(stallRoof);
-
-        scene.add(marketGroup);
-
-        // SAKURA TREE
-        const sakuraGroup = new THREE.Group();
-        sakuraGroup.position.set(-33, 0, 5);
-
-        const sTrunk = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.9, 4, 8), materials.wood);
-        sTrunk.position.y = 2;
-        sTrunk.castShadow = true;
-        sakuraGroup.add(sTrunk);
-
-        const sLeaves1 = new THREE.Mesh(new THREE.DodecahedronGeometry(3.5), materials.sakuraLeaf);
-        sLeaves1.position.y = 5.5;
-        sLeaves1.castShadow = true;
-        sakuraGroup.add(sLeaves1);
-
-        scene.add(sakuraGroup);
-
-        // HOUSE
+        // House
         let houseGroup = new THREE.Group();
         scene.add(houseGroup);
-        houseGroup.position.set(-3, 0, -10);
+        houseGroup.position.set(0, 0, -8);
 
         function buildHouse(level) {
             while(houseGroup.children.length > 0) houseGroup.remove(houseGroup.children[0]);
             let baseGeo, roofGeo, roofMat;
             
             if(level === 1) {
-                baseGeo = new THREE.BoxGeometry(5.5, 4, 5.5);
-                roofGeo = new THREE.ConeGeometry(4.8, 3, 4);
+                baseGeo = new THREE.BoxGeometry(5, 4, 5);
+                roofGeo = new THREE.ConeGeometry(4.5, 2.5, 4);
                 roofMat = materials.houseRoof1;
             } else if(level === 2) {
-                baseGeo = new THREE.BoxGeometry(7.5, 5, 6.5);
-                roofGeo = new THREE.ConeGeometry(5.8, 3.8, 4);
+                baseGeo = new THREE.BoxGeometry(7, 5, 6);
+                roofGeo = new THREE.ConeGeometry(5.5, 3.5, 4);
                 roofMat = materials.houseRoof2;
             } else {
-                baseGeo = new THREE.BoxGeometry(9.5, 6, 7.5);
-                roofGeo = new THREE.ConeGeometry(7.2, 4.5, 4);
+                baseGeo = new THREE.BoxGeometry(9, 6, 7);
+                roofGeo = new THREE.ConeGeometry(7, 4, 4);
                 roofMat = materials.houseRoof3;
             }
 
@@ -810,98 +744,76 @@
             roof.castShadow = true;
             houseGroup.add(roof);
 
-            const door = new THREE.Mesh(new THREE.BoxGeometry(1.2, 2.5, 0.15), materials.wood);
-            door.position.set(0, 1.25, baseGeo.parameters.depth/2 + 0.08);
+            const door = new THREE.Mesh(new THREE.BoxGeometry(1.2, 2.5, 0.1), materials.wood);
+            door.position.set(0, 1.25, baseGeo.parameters.depth/2 + 0.05);
             houseGroup.add(door);
+
+            const chimneyGeo = new THREE.BoxGeometry(0.8, 2, 0.8);
+            const chimney = new THREE.Mesh(chimneyGeo, materials.wood);
+            chimney.position.set(-baseGeo.parameters.width/3, baseGeo.parameters.height + 1, 0);
+            houseGroup.add(chimney);
         }
         buildHouse(1);
 
-        // ANCIENT WELL
+        // Well
         const well = new THREE.Group();
-        well.position.set(-12, 0, -3);
-        
-        const wellBase = new THREE.Mesh(new THREE.CylinderGeometry(1.8, 1.8, 1.3, 14), materials.stone);
-        wellBase.position.y = 0.65;
+        well.position.set(-10, 0, -3);
+        const wellBase = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 1.2, 12), materials.stone);
+        wellBase.position.y = 0.6;
         wellBase.castShadow = true;
         well.add(wellBase);
-
-        const wellWater = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 1.3, 14), materials.water);
-        wellWater.position.y = 0.66;
+        const wellWater = new THREE.Mesh(new THREE.CylinderGeometry(1.3, 1.3, 1.25, 12), materials.water);
+        wellWater.position.y = 0.6;
         well.add(wellWater);
-
-        const wellPillar1 = new THREE.Mesh(new THREE.BoxGeometry(0.25, 3.2, 0.25), materials.wood);
-        wellPillar1.position.set(-1.4, 1.6, 0);
+        const wellPillar1 = new THREE.Mesh(new THREE.BoxGeometry(0.2, 3, 0.2), materials.wood);
+        wellPillar1.position.set(-1.2, 1.5, 0);
         well.add(wellPillar1);
-
         const wellPillar2 = wellPillar1.clone();
-        wellPillar2.position.set(1.4, 1.6, 0);
+        wellPillar2.position.set(1.2, 1.5, 0);
         well.add(wellPillar2);
-
-        const wellRoof = new THREE.Mesh(new THREE.ConeGeometry(2.4, 1.2, 4), materials.houseRoof2);
-        wellRoof.position.y = 3.6;
+        const wellRoof = new THREE.Mesh(new THREE.ConeGeometry(2, 1, 4), materials.houseRoof1);
+        wellRoof.position.y = 3.5;
         wellRoof.rotation.y = Math.PI/4;
-        wellRoof.castShadow = true;
         well.add(wellRoof);
-
         scene.add(well);
 
-        // ROBLOX CLASSIC BLOCKY CHARACTER
-        const farmer = new THREE.Group();
+        // Robot
+        const robot = new THREE.Group();
+        robot.position.set(-10, 0, 1);
         
-        // Blocky Head
-        const fHead = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), materials.skin);
-        fHead.position.y = 2.5;
-        fHead.castShadow = true;
-        farmer.add(fHead);
+        const rBody = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.5, 1), materials.robotBody);
+        rBody.position.y = 1.25;
+        rBody.castShadow = true;
+        robot.add(rBody);
+        
+        const rBase = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.4, 1.1), materials.robotBase);
+        rBase.position.y = 0.3;
+        robot.add(rBase);
+        
+        const rHead = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), materials.robotBody);
+        rHead.position.y = 2.6;
+        rHead.castShadow = true;
+        robot.add(rHead);
+        
+        const rAntenna = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.5), materials.robotBase);
+        rAntenna.position.y = 3.3;
+        robot.add(rAntenna);
+        const rAntennaTop = new THREE.Mesh(new THREE.SphereGeometry(0.15), new THREE.MeshBasicMaterial({color: 0x3498db}));
+        rAntennaTop.position.y = 3.6;
+        robot.add(rAntennaTop);
+        
+        const rEyeGeo = new THREE.BoxGeometry(0.2, 0.2, 0.1);
+        const rEyeMat = new THREE.MeshBasicMaterial({color: 0xf1c40f});
+        const rEye1 = new THREE.Mesh(rEyeGeo, rEyeMat);
+        rEye1.position.set(-0.25, 2.7, 0.55);
+        robot.add(rEye1);
+        const rEye2 = rEye1.clone();
+        rEye2.position.set(0.25, 2.7, 0.55);
+        robot.add(rEye2);
 
-        // Roblox Face Eyes
-        const eyeMat = new THREE.MeshBasicMaterial({ color: 0x0f172a });
-        const eyeGeo = new THREE.BoxGeometry(0.15, 0.15, 0.05);
-        const lEye = new THREE.Mesh(eyeGeo, eyeMat);
-        lEye.position.set(-0.25, 2.6, 0.51);
-        farmer.add(lEye);
-        const rEye = lEye.clone();
-        rEye.position.set(0.25, 2.6, 0.51);
-        farmer.add(rEye);
+        scene.add(robot);
 
-        // Straw Hat
-        const hatBrim = new THREE.Mesh(new THREE.CylinderGeometry(1.3, 1.3, 0.1, 16), materials.strawHat);
-        hatBrim.position.y = 3.05;
-        farmer.add(hatBrim);
-        const hatCrown = new THREE.Mesh(new THREE.ConeGeometry(0.7, 0.6, 16), materials.strawHat);
-        hatCrown.position.y = 3.4;
-        farmer.add(hatCrown);
-
-        // Blocky Torso
-        const fBody = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, 0.6), materials.shirt);
-        fBody.position.y = 1.4;
-        fBody.castShadow = true;
-        farmer.add(fBody);
-
-        // Blocky Arms
-        const armGeo = new THREE.BoxGeometry(0.5, 1.2, 0.5);
-        const leftArm = new THREE.Mesh(armGeo, materials.skin);
-        leftArm.position.set(-0.9, 1.4, 0);
-        farmer.add(leftArm);
-
-        const rightArm = leftArm.clone();
-        rightArm.position.set(0.9, 1.4, 0);
-        farmer.add(rightArm);
-
-        // Blocky Legs
-        const legGeo = new THREE.BoxGeometry(0.55, 0.8, 0.55);
-        const leftLeg = new THREE.Mesh(legGeo, materials.pants);
-        leftLeg.position.set(-0.3, 0.4, 0);
-        farmer.add(leftLeg);
-
-        const rightLeg = leftLeg.clone();
-        rightLeg.position.set(0.3, 0.4, 0);
-        farmer.add(rightLeg);
-
-        farmer.position.set(0, 0, 12);
-        scene.add(farmer);
-
-        // FARM PLOTS (3D Box Geometry - 100% Raycast Guarantee!)
+        // Farm Plots (BoxGeometry for 100% reliable click raycasting)
         const plots = [];
         const plotGroup = new THREE.Group();
         plotGroup.position.set(0, 0, 4); 
@@ -909,65 +821,76 @@
 
         const plotWidth = 2.8;
         const plotHeight = 0.3;
-        const plotSpacing = 3.2;
+        const plotSpacing = 3.0;
         const plotGeo = new THREE.BoxGeometry(plotWidth, plotHeight, plotWidth);
         
         for(let i=0; i<Game.maxPlots; i++) {
             const col = i % 3;
             const row = Math.floor(i / 3);
             
-            const plotMat = (i < Game.activePlots) ? new THREE.MeshLambertMaterial({ color: 0x78350f }) : materials.plotLocked;
+            const plotMat = (i < Game.activePlots) ? materials.plotEmpty : materials.plotLocked;
             const mesh = new THREE.Mesh(plotGeo, plotMat);
             mesh.position.set((col - 1) * plotSpacing, plotHeight / 2, (row - 1.5) * plotSpacing);
             mesh.receiveShadow = true;
             mesh.castShadow = true;
 
-            // Crucial: Store plot ID directly on mesh userData
+            const borderGeo = new THREE.BoxGeometry(plotWidth + 0.2, 0.1, plotWidth + 0.2);
+            const border = new THREE.Mesh(borderGeo, materials.wood);
+            border.position.y = -0.1;
+            mesh.add(border);
+
             mesh.userData = { id: i, state: (i < Game.activePlots) ? 'empty' : 'locked', plantType: null, progress: 0, meshObj: null, barObj: null };
             plotGroup.add(mesh);
             plots.push(mesh);
         }
 
+        // Plants Geometry Cache
         const plantGeos = {
-            sphere: new THREE.SphereGeometry(0.75, 16, 16),
-            cone: new THREE.ConeGeometry(0.65, 1.5, 16),
-            dodecahedron: new THREE.DodecahedronGeometry(0.75)
+            sphere: new THREE.SphereGeometry(0.7, 16, 16),
+            cone: new THREE.ConeGeometry(0.6, 1.5, 16),
+            dodecahedron: new THREE.DodecahedronGeometry(0.7)
         };
 
-        // PARTICLES
+        // Particles
         const particles = [];
         
         function createSmoke() {
-            if(Math.random() > 0.4) return;
-            const geo = new THREE.BoxGeometry(0.6, 0.6, 0.6);
-            const mat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 });
+            if(Math.random() > 0.3) return;
+            const geo = new THREE.PlaneGeometry(1, 1);
+            const mat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.6 });
             const smoke = new THREE.Mesh(geo, mat);
-            smoke.position.set(houseGroup.position.x - 1, 6.5, houseGroup.position.z);
+            let chimneyX = houseGroup.children[0].geometry.parameters.width / 3;
+            let chimneyY = houseGroup.children[0].geometry.parameters.height + 2;
+            smoke.position.set(-chimneyX, chimneyY, -8);
+            
             scene.add(smoke);
             particles.push({ mesh: smoke, type: 'smoke', life: 1 });
         }
 
         function createWaterDrop(x, z) {
-            const geo = new THREE.BoxGeometry(0.15, 0.35, 0.15);
-            const mat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+            const geo = new THREE.BoxGeometry(0.1, 0.3, 0.1);
+            const mat = new THREE.MeshBasicMaterial({ color: 0x3498db });
             const drop = new THREE.Mesh(geo, mat);
-            drop.position.set(x + (Math.random()-0.5)*3, 5 + Math.random()*2, z + (Math.random()-0.5)*3);
+            drop.position.set(x + (Math.random()-0.5)*2, 5 + Math.random()*2, z + (Math.random()-0.5)*2);
             scene.add(drop);
-            particles.push({ mesh: drop, type: 'water', life: 1, velocity: -0.15 });
+            particles.push({ mesh: drop, type: 'water', life: 1, velocity: -0.1 });
         }
 
         function createSparks(x, y, z) {
-            for(let i=0; i<4; i++) {
-                const spark = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.15, 0.15), new THREE.MeshBasicMaterial({ color: 0xfacc15 }));
+            for(let i=0; i<3; i++) {
+                const geo = new THREE.BoxGeometry(0.1, 0.1, 0.1);
+                const mat = new THREE.MeshBasicMaterial({ color: 0xe74c3c });
+                const spark = new THREE.Mesh(geo, mat);
                 spark.position.set(x, y, z);
                 scene.add(spark);
                 particles.push({ 
                     mesh: spark, type: 'spark', life: 1, 
-                    vx: (Math.random()-0.5)*0.25, vy: Math.random()*0.35, vz: (Math.random()-0.5)*0.25 
+                    vx: (Math.random()-0.5)*0.2, vy: Math.random()*0.3, vz: (Math.random()-0.5)*0.2 
                 });
             }
         }
 
+        // Floating Text
         function showFloatingText(text, color, screenX, screenY) {
             const div = document.createElement('div');
             div.className = 'floating-text-anim';
@@ -976,13 +899,13 @@
             div.style.left = screenX + 'px';
             div.style.top = screenY + 'px';
             document.body.appendChild(div);
-            setTimeout(() => div.remove(), 1200);
+            setTimeout(() => div.remove(), 1000);
         }
 
         function toScreenPosition(obj, camera) {
             const vector = new THREE.Vector3();
             obj.getWorldPosition(vector);
-            if(obj === well) vector.y += 4.5;
+            if(obj === robot) vector.y += 4.5;
             else vector.y += 1;
             vector.project(camera);
             const x = (vector.x * .5 + .5) * window.innerWidth;
@@ -990,23 +913,9 @@
             return { x, y, z: vector.z };
         }
 
-        // CONTROLS & RAYCASTING (PERFECTED BUG FIX)
+        // Input & Controls
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
-
-        const keys = { w: false, a: false, s: false, d: false };
-
-        function updateKey(e, isPressed) {
-            const k = (e.key || '').toLowerCase();
-            const code = e.code || '';
-            if (k === 'w' || code === 'KeyW' || code === 'ArrowUp') keys.w = isPressed;
-            if (k === 's' || code === 'KeyS' || code === 'ArrowDown') keys.s = isPressed;
-            if (k === 'a' || code === 'KeyA' || code === 'ArrowLeft') keys.a = isPressed;
-            if (k === 'd' || code === 'KeyD' || code === 'ArrowRight') keys.d = isPressed;
-        }
-
-        window.addEventListener('keydown', (e) => updateKey(e, true));
-        window.addEventListener('keyup', (e) => updateKey(e, false));
 
         window.addEventListener('click', onMouseClick);
 
@@ -1017,90 +926,81 @@
             mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
             raycaster.setFromCamera(mouse, camera);
 
-            // Check Well Click
-            const wellIntersects = raycaster.intersectObjects(well.children, true);
-            if(wellIntersects.length > 0) {
-                if(Game.wellState === 'ready') openQuiz();
-                else if(Game.wellState === 'broken') {
+            // Robot Click -> Open Quiz
+            const robotIntersects = raycaster.intersectObject(rBody);
+            if(robotIntersects.length > 0) {
+                if(Game.robotState === 'ready') openQuiz();
+                else if(Game.robotState === 'broken') {
                     playSound('error');
-                    showFloatingText("กำลังพักฟื้น!", "#ef4444", event.clientX, event.clientY);
+                    showFloatingText("ซ่อมอยู่!", "#e74c3c", event.clientX, event.clientY);
                 }
                 return;
             }
 
-            // Check Plots Click (RECURSIVE TRAVERSAL FIX - GUARANTEES PLANTING & HARVESTING 100%)
-            const intersects = raycaster.intersectObjects(plotGroup.children, true);
+            // Plots Click
+            const intersects = raycaster.intersectObjects(plots);
             if (intersects.length > 0) {
-                let targetMesh = intersects[0].object;
-                
-                // Traverse up to find the plotMesh containing userData
-                while (targetMesh && !targetMesh.userData.hasOwnProperty('state') && targetMesh.parent && targetMesh.parent !== plotGroup) {
-                    targetMesh = targetMesh.parent;
-                }
+                const plotMesh = intersects[0].object;
+                const plot = plotMesh.userData;
 
-                if (targetMesh && targetMesh.userData.hasOwnProperty('state')) {
-                    const plot = targetMesh.userData;
-
-                    if (plot.state === 'empty') {
-                        const seedData = Plants[Game.selectedSeed];
-                        if (Game.money >= seedData.cost) {
-                            Game.money -= seedData.cost;
-                            updateUI();
-                            playSound('plant');
-                            showFloatingText(`-${seedData.cost} 🪙`, "#ef4444", event.clientX, event.clientY);
-
-                            plot.state = 'growing';
-                            plot.plantType = Game.selectedSeed;
-                            plot.progress = 0;
-                            targetMesh.material = new THREE.MeshLambertMaterial({ color: 0x451a03 });
-
-                            const pMat = new THREE.MeshLambertMaterial({ color: seedData.color });
-                            const pMesh = new THREE.Mesh(plantGeos[seedData.geo], pMat);
-                            pMesh.position.y = plotHeight / 2 + 0.45;
-                            pMesh.scale.set(0.1, 0.1, 0.1);
-                            pMesh.castShadow = true;
-                            targetMesh.add(pMesh);
-                            plot.meshObj = pMesh;
-
-                            const barGroup = new THREE.Group();
-                            const bgBar = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.25), new THREE.MeshBasicMaterial({color: 0x0f172a, side: THREE.DoubleSide}));
-                            const fgBar = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 0.15), new THREE.MeshBasicMaterial({color: 0x10b981, side: THREE.DoubleSide}));
-                            fgBar.position.z = 0.01;
-                            fgBar.position.x = -0.7; 
-                            fgBar.geometry.translate(0.7, 0, 0); 
-                            fgBar.scale.x = 0.01; 
-                            barGroup.add(bgBar);
-                            barGroup.add(fgBar);
-                            barGroup.position.y = plotHeight / 2 + 1.8;
-                            targetMesh.add(barGroup);
-                            plot.barObj = barGroup;
-
-                        } else {
-                            playSound('error');
-                            showFloatingText("เงินไม่พอ!", "#ef4444", event.clientX, event.clientY);
-                        }
-                    } else if (plot.state === 'ready') {
-                        const seedData = Plants[plot.plantType];
-                        inventoryItems.push(seedData.sell);
-                        
+                if (plot.state === 'empty') {
+                    const seedData = Plants[Game.selectedSeed];
+                    if (Game.money >= seedData.cost) {
+                        Game.money -= seedData.cost;
                         updateUI();
-                        playSound('harvest');
-                        createSparks(targetMesh.position.x, 1, targetMesh.position.z + 4);
-                        showFloatingText(`+1 📦`, "#10b981", event.clientX, event.clientY);
-                        
-                        if(plot.meshObj) targetMesh.remove(plot.meshObj);
-                        plot.state = 'empty';
-                        plot.plantType = null;
-                        plot.meshObj = null;
-                        targetMesh.material = new THREE.MeshLambertMaterial({ color: 0x78350f });
-                    } else if (plot.state === 'locked') {
-                        showFloatingText("ช่องยังไม่ปลดล็อค", "#94a3b8", event.clientX, event.clientY);
+                        playSound('plant');
+                        showFloatingText(`-${seedData.cost} 🪙`, "#e74c3c", event.clientX, event.clientY);
+
+                        plot.state = 'growing';
+                        plot.plantType = Game.selectedSeed;
+                        plot.progress = 0;
+                        plotMesh.material = new THREE.MeshLambertMaterial({ color: 0x6e431f });
+
+                        const pMat = new THREE.MeshLambertMaterial({ color: seedData.color });
+                        const pMesh = new THREE.Mesh(plantGeos[seedData.geo], pMat);
+                        pMesh.position.y = plotHeight / 2 + 0.4;
+                        pMesh.scale.set(0.1, 0.1, 0.1);
+                        pMesh.castShadow = true;
+                        plotMesh.add(pMesh);
+                        plot.meshObj = pMesh;
+
+                        const barGroup = new THREE.Group();
+                        const bgBar = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.25), new THREE.MeshBasicMaterial({color: 0x2d3436, side: THREE.DoubleSide}));
+                        const fgBar = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 0.15), new THREE.MeshBasicMaterial({color: 0x2ecc71, side: THREE.DoubleSide}));
+                        fgBar.position.z = 0.01;
+                        fgBar.position.x = -0.7; 
+                        fgBar.geometry.translate(0.7, 0, 0); 
+                        fgBar.scale.x = 0.01; 
+                        barGroup.add(bgBar);
+                        barGroup.add(fgBar);
+                        barGroup.position.y = plotHeight / 2 + 1.5;
+                        plotMesh.add(barGroup);
+                        plot.barObj = barGroup;
+
+                    } else {
+                        playSound('error');
+                        showFloatingText("เงินไม่พอ!", "#e74c3c", event.clientX, event.clientY);
                     }
+                } else if (plot.state === 'ready') {
+                    const seedData = Plants[plot.plantType];
+                    inventoryItems.push(seedData.sell);
+                    
+                    updateUI();
+                    playSound('harvest');
+                    showFloatingText(`+1 📦`, "#2ecc71", event.clientX, event.clientY);
+                    
+                    plotMesh.remove(plot.meshObj);
+                    plot.state = 'empty';
+                    plot.plantType = null;
+                    plot.meshObj = null;
+                    plotMesh.material = materials.plotEmpty;
+                } else if (plot.state === 'locked') {
+                    showFloatingText("ช่องยังไม่ปลดล็อค", "#7f8c8d", event.clientX, event.clientY);
                 }
             }
         }
 
-        // UI & GAME LOOP
+        // UI Functions
         function updateUI() {
             document.getElementById('ui-money').innerText = Game.money;
             document.getElementById('ui-inventory').innerText = inventoryItems.length;
@@ -1140,7 +1040,7 @@
                 inventoryItems = [];
                 updateUI();
                 playSound('sell');
-                showFloatingText(`+${total} 🪙`, "#f59e0b", window.innerWidth/2, window.innerHeight/2);
+                showFloatingText(`+${total} 🪙`, "#f1c40f", window.innerWidth/2, window.innerHeight/2);
             } else {
                 playSound('error');
             }
@@ -1151,11 +1051,11 @@
                 Game.money -= 150;
                 const plot = plots[Game.activePlots];
                 plot.userData.state = 'empty';
-                plot.material = new THREE.MeshLambertMaterial({ color: 0x78350f });
+                plot.material = materials.plotEmpty;
                 Game.activePlots++;
                 updateUI();
                 playSound('sell');
-                showFloatingText("-150 🪙", "#ef4444", window.innerWidth/2, window.innerHeight/2);
+                showFloatingText("-150 🪙", "#e74c3c", window.innerWidth/2, window.innerHeight/2);
             } else if (Game.money < 150) {
                 playSound('error');
             }
@@ -1168,14 +1068,15 @@
                 buildHouse(level);
                 updateUI();
                 playSound('correct'); 
-                showFloatingText(`ต่อเติมบ้าน ระดับ ${level}!`, "#0284c7", window.innerWidth/2, window.innerHeight/2);
+                showFloatingText(`ต่อเติมบ้าน ระดับ ${level}!`, "#3498db", window.innerWidth/2, window.innerHeight/2);
             } else {
                 playSound('error');
             }
         }
 
+        // Minigame
         function openQuiz() {
-            if(Game.wellState !== 'ready') return;
+            if(Game.robotState !== 'ready') return;
             const num1 = Math.floor(Math.random() * 50) + 10;
             const num2 = Math.floor(Math.random() * 50) + 10;
             const ops = ['+', '-'];
@@ -1207,19 +1108,19 @@
 
             if(val === Game.quizAnswer) {
                 playSound('correct');
-                Game.wellState = 'buff';
-                Game.wellTimer = 10;
+                Game.robotState = 'buff';
+                Game.robotTimer = 10;
                 Game.buffTime = 10;
-                showFloatingText("ถูกต้อง! บัฟน้ำเปิดใช้งาน 💦", "#0284c7", window.innerWidth/2, window.innerHeight/2);
+                showFloatingText("ถูกต้อง! 💦", "#3498db", window.innerWidth/2, window.innerHeight/2);
             } else {
                 playSound('wrong');
-                Game.wellState = 'broken';
-                Game.wellTimer = 10;
-                showFloatingText("ผิดพลาด!", "#ef4444", window.innerWidth/2, window.innerHeight/2);
+                Game.robotState = 'broken';
+                Game.robotTimer = 10;
+                showFloatingText("ผิดพลาด!", "#e74c3c", window.innerWidth/2, window.innerHeight/2);
             }
         }
 
-        // ANIMATION LOOP
+        // Animation Loop
         const clock = new THREE.Clock();
 
         function animate() {
@@ -1228,41 +1129,6 @@
             const time = clock.getElapsedTime();
 
             controls.update();
-
-            bladesGroup.rotation.z += dt * 0.9;
-
-            // Farmer Movement across ALL islands and bridges!
-            const moveSpeed = 16 * dt;
-            let moveX = 0;
-            let moveZ = 0;
-            if (keys.w) moveZ -= 1;
-            if (keys.s) moveZ += 1;
-            if (keys.a) moveX -= 1;
-            if (keys.d) moveX += 1;
-
-            if (moveX !== 0 || moveZ !== 0) {
-                const len = Math.sqrt(moveX*moveX + moveZ*moveZ);
-                farmer.position.x += (moveX / len) * moveSpeed;
-                farmer.position.z += (moveZ / len) * moveSpeed;
-                
-                // Bounds for walking across main & secondary islands & bridges
-                farmer.position.x = THREE.MathUtils.clamp(farmer.position.x, -42, 42);
-                farmer.position.z = THREE.MathUtils.clamp(farmer.position.z, -42, 20);
-
-                farmer.rotation.y = Math.atan2(moveX, moveZ);
-                farmer.position.y = Math.abs(Math.sin(time * 15)) * 0.35;
-
-                leftArm.rotation.x = Math.sin(time * 15) * 0.7;
-                rightArm.rotation.x = -Math.sin(time * 15) * 0.7;
-                leftLeg.rotation.x = -Math.sin(time * 15) * 0.7;
-                rightLeg.rotation.x = Math.sin(time * 15) * 0.7;
-            } else {
-                farmer.position.y = 0;
-                leftArm.rotation.x = 0;
-                rightArm.rotation.x = 0;
-                leftLeg.rotation.x = 0;
-                rightLeg.rotation.x = 0;
-            }
 
             // Water Wave Animation
             const positions = waterGeo.attributes.position;
@@ -1273,16 +1139,21 @@
             }
             positions.needsUpdate = true;
 
+            // Tree Swaying Animation
+            trees.forEach(t => {
+                t.obj.rotation.z = Math.sin(time * 2 + t.speed * 100) * 0.05;
+            });
+
             // Particles Update
             createSmoke();
             for(let i=particles.length-1; i>=0; i--) {
                 let p = particles[i];
                 if(p.type === 'smoke') {
-                    p.mesh.position.y += dt * 1.5;
-                    p.mesh.position.x += dt * 0.3;
-                    p.mesh.scale.addScalar(dt * 0.4);
-                    p.life -= dt * 0.4;
-                    p.mesh.material.opacity = p.life * 0.5;
+                    p.mesh.position.y += dt * 2;
+                    p.mesh.position.x += dt * 0.5;
+                    p.mesh.scale.addScalar(dt * 0.5);
+                    p.life -= dt * 0.5;
+                    p.mesh.material.opacity = p.life * 0.6;
                 } else if(p.type === 'water') {
                     p.mesh.position.y += p.velocity;
                     p.life -= dt;
@@ -1300,7 +1171,7 @@
                 }
             }
 
-            // Crop Growth
+            // Plants Growth Logic
             const speedMult = Game.buffTime > 0 ? 1.5 : 1;
             plots.forEach(plotMesh => {
                 const plot = plotMesh.userData;
@@ -1314,32 +1185,31 @@
                     }
                     
                     if(plot.meshObj) {
-                        const s = 0.1 + (plot.progress * 0.85);
+                        const s = 0.1 + (plot.progress * 0.8);
                         plot.meshObj.scale.set(s, s, s);
                     }
 
                     if(plot.progress >= 1) {
                         plot.state = 'ready';
-                        if(plot.barObj) {
-                            plotMesh.remove(plot.barObj);
-                            plot.barObj = null;
-                        }
-                        if(plot.meshObj) plot.meshObj.scale.set(1.25, 1.25, 1.25);
-                        createSparks(plotMesh.position.x, 1, plotMesh.position.z + 4);
+                        plotMesh.remove(plot.barObj);
+                        plot.barObj = null;
+                        
+                        const popS = 1.3;
+                        plot.meshObj.scale.set(popS, popS, popS);
                     }
                 }
             });
 
-            // Well Label
-            const wLabel = document.getElementById('well-label');
-            const wPos = toScreenPosition(well, camera);
+            // Robot Label UI Position
+            const rLabel = document.getElementById('robot-label');
+            const rPos = toScreenPosition(robot, camera);
             
-            if(wPos.z < 1) { 
-                wLabel.style.display = 'block';
-                wLabel.style.left = wPos.x + 'px';
-                wLabel.style.top = wPos.y + 'px';
+            if(rPos.z < 1) { 
+                rLabel.style.display = 'block';
+                rLabel.style.left = rPos.x + 'px';
+                rLabel.style.top = rPos.y + 'px';
             } else {
-                wLabel.style.display = 'none';
+                rLabel.style.display = 'none';
             }
 
             if(Game.buffTime > 0) {
@@ -1352,26 +1222,33 @@
                 }
             }
 
-            if(Game.wellState !== 'ready') {
-                Game.wellTimer -= dt;
-                if(Game.wellTimer <= 0) {
-                    Game.wellState = 'ready';
+            // Robot State Animations
+            if(Game.robotState !== 'ready') {
+                Game.robotTimer -= dt;
+                if(Game.robotTimer <= 0) {
+                    Game.robotState = 'ready';
+                    robot.rotation.y = 0;
                 } else {
-                    if(Game.wellState === 'broken') {
-                        wLabel.innerText = `บ่อน้ำแห้ง! (${Math.ceil(Game.wellTimer)})`;
-                        wLabel.style.color = '#ef4444';
-                        wLabel.style.borderColor = '#ef4444';
-                        if(Math.random() > 0.8) createSparks(well.position.x, 3, well.position.z);
-                    } else if(Game.wellState === 'buff') {
-                        wLabel.innerText = `รดน้ำ 💦 (${Math.ceil(Game.wellTimer)})`;
-                        wLabel.style.color = '#0284c7';
-                        wLabel.style.borderColor = '#0284c7';
+                    if(Game.robotState === 'broken') {
+                        rLabel.innerText = `พัง! (${Math.ceil(Game.robotTimer)})`;
+                        rLabel.style.color = '#e74c3c';
+                        rLabel.style.borderColor = '#e74c3c';
+                        robot.position.x = -10 + (Math.random()-0.5)*0.1;
+                        if(Math.random() > 0.8) createSparks(-10, 2, 1);
+                    } else if(Game.robotState === 'buff') {
+                        rLabel.innerText = `รดน้ำ 💦 (${Math.ceil(Game.robotTimer)})`;
+                        rLabel.style.color = '#3498db';
+                        rLabel.style.borderColor = '#3498db';
+                        robot.rotation.y += dt * 5;
                     }
                 }
             } else {
-                wLabel.innerText = "บ่อน้ำ QUIZ 💧";
-                wLabel.style.color = '#0284c7';
-                wLabel.style.borderColor = '#0284c7';
+                rLabel.innerText = "QUIZ 🤖";
+                rLabel.style.color = '#f1c40f';
+                rLabel.style.borderColor = '#f1c40f';
+                robot.position.x = -10;
+                robot.rotation.y = Math.sin(time) * 0.2; 
+                robot.position.y = Math.sin(time*2) * 0.1; 
             }
 
             renderer.render(scene, camera);
