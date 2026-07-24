@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mini Farm Island 3D</title>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>Mini Farm Island 3D - Ultimate Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700&display=swap" rel="stylesheet">
     <!-- Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -12,138 +12,146 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
         * { box-sizing: border-box; user-select: none; }
-        body { margin: 0; overflow: hidden; font-family: 'Kanit', sans-serif; background-color: #87ceeb; }
+        body { margin: 0; overflow: hidden; font-family: 'Kanit', sans-serif; background: #87ceeb; }
         #canvas-container { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; }
         
+        /* Premium Modern UI Panels */
         .panel {
-            background: #ffffff;
-            border-radius: 16px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-            padding: 16px;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(12px);
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            border-radius: 20px;
+            box-shadow: 0 12px 32px rgba(15, 23, 42, 0.15);
+            padding: 18px;
             position: absolute;
             z-index: 10;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        #left-panel { top: 20px; left: 20px; width: 240px; }
-        #right-panel { top: 20px; right: 20px; width: 280px; max-height: calc(100vh - 40px); overflow-y: auto; }
+        #left-panel { top: 20px; left: 20px; width: 250px; }
+        #right-panel { top: 20px; right: 20px; width: 290px; max-height: calc(100vh - 40px); overflow-y: auto; }
         
-        .header { font-weight: 600; font-size: 18px; color: #2c3e50; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;}
-        .stat-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-        .stat-row .icon { font-size: 22px; background: #f0f3f4; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-        .stat-row .label { font-size: 11px; color: #7f8c8d; }
-        .stat-row .val { font-size: 15px; font-weight: 600; color: #2c3e50; }
+        .header { font-weight: 700; font-size: 18px; color: #1e293b; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between;}
+        .stat-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; background: #f8fafc; padding: 10px; border-radius: 14px; border: 1px solid #e2e8f0; }
+        .stat-row .icon { font-size: 24px; background: #ffffff; width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .stat-row .label { font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; }
+        .stat-row .val { font-size: 16px; font-weight: 700; color: #0f172a; }
         
         button {
-            width: 100%; padding: 12px; border: none; border-radius: 10px;
+            width: 100%; padding: 13px; border: none; border-radius: 12px;
             font-family: 'Kanit', sans-serif; font-size: 14px; font-weight: 600;
-            cursor: pointer; transition: transform 0.1s, opacity 0.2s;
+            cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex; align-items: center; justify-content: center; gap: 6px;
         }
-        button:active { transform: scale(0.96); }
+        button:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.15); }
+        button:active { transform: translateY(0); scale: 0.97; }
         
-        .btn-sell { background-color: #f1c40f; color: #333; margin-top: 5px; box-shadow: 0 4px 10px rgba(241,196,15,0.3); }
-        .btn-sell:hover { opacity: 0.9; }
-        .btn-save { background-color: #2ecc71; color: white; margin-top: 8px; box-shadow: 0 4px 10px rgba(46,204,113,0.3); }
-        .btn-save:hover { opacity: 0.9; }
+        .btn-sell { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; margin-top: 6px; box-shadow: 0 4px 14px rgba(245,158,11,0.35); }
+        .btn-save { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; margin-top: 10px; box-shadow: 0 4px 14px rgba(16,185,129,0.35); }
         
-        .hint { font-size: 10px; color: #95a5a6; text-align: center; margin-top: 6px; }
+        .hint { font-size: 11px; color: #94a3b8; text-align: center; margin-top: 8px; }
 
         /* User badge */
         .user-badge {
-            background: #e2e8f0; border-radius: 20px; padding: 4px 10px; font-size: 12px; color: #334155; font-weight: 600;
-            display: inline-flex; align-items: center; gap: 4px;
+            background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%); border-radius: 20px; padding: 4px 12px; font-size: 12px; color: #1e293b; font-weight: 600;
+            display: inline-flex; align-items: center; gap: 4px; box-shadow: inset 0 1px 2px rgba(255,255,255,0.8);
         }
 
         /* Tabs */
-        .tabs { display: flex; margin-bottom: 15px; border-bottom: 2px solid #ecf0f1; }
-        .tab { flex: 1; text-align: center; padding: 8px 0; cursor: pointer; font-weight: 600; color: #95a5a6; font-size: 14px; position: relative;}
-        .tab.active { color: #2ecc71; }
-        .tab.active::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 2px; background: #2ecc71; }
+        .tabs { display: flex; margin-bottom: 16px; border-bottom: 2px solid #f1f5f9; gap: 6px; }
+        .tab { flex: 1; text-align: center; padding: 10px 0; cursor: pointer; font-weight: 600; color: #94a3b8; font-size: 14px; position: relative; transition: all 0.2s;}
+        .tab.active { color: #10b981; }
+        .tab.active::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 3px; background: #10b981; border-radius: 3px 3px 0 0; }
 
-        /* Items */
+        /* Item Cards */
         .item-card {
-            background: #fff; border: 1.5px solid #e2e8f0;
-            border-radius: 10px; padding: 10px 12px; margin-bottom: 10px;
-            cursor: pointer; display: flex; flex-direction: column; gap: 4px;
-            transition: all 0.2s;
+            background: #ffffff; border: 2px solid #e2e8f0;
+            border-radius: 14px; padding: 12px 14px; margin-bottom: 12px;
+            cursor: pointer; display: flex; flex-direction: column; gap: 6px;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .item-card.selected { border-color: #2ecc71; background: #f0fdf4; box-shadow: 0 2px 8px rgba(46,204,113,0.2); }
+        .item-card:hover { border-color: #38bdf8; transform: translateY(-2px); box-shadow: 0 6px 16px rgba(56,189,248,0.15); }
+        .item-card.selected { border-color: #10b981; background: #f0fdf4; box-shadow: 0 4px 14px rgba(16,185,129,0.2); }
         .item-card.disabled { opacity: 0.5; pointer-events: none; }
         .item-row { display: flex; justify-content: space-between; align-items: center; }
-        .item-title { font-weight: 600; font-size: 14px; color: #2c3e50; }
-        .item-detail { font-size: 12px; color: #7f8c8d; }
-        .text-green { color: #2ecc71; font-weight: 600; }
-        .text-red { color: #e74c3c; font-weight: 600; }
+        .item-title { font-weight: 600; font-size: 14px; color: #0f172a; }
+        .item-detail { font-size: 12px; color: #64748b; }
+        .text-green { color: #10b981; font-weight: 700; }
+        .text-red { color: #ef4444; font-weight: 700; }
 
         /* Bottom Guide */
         #bottom-guide {
-            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-            background: rgba(30, 41, 59, 0.88); color: white; padding: 10px 24px;
-            border-radius: 30px; font-size: 13px; z-index: 10; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            backdrop-filter: blur(4px); display: flex; gap: 15px; align-items: center;
+            position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.9); color: white; padding: 12px 28px;
+            border-radius: 40px; font-size: 13px; z-index: 10; box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+            backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.15); display: flex; gap: 18px; align-items: center;
         }
-        #bottom-guide span.key { background: #475569; padding: 2px 6px; border-radius: 4px; color: #f8fafc; font-size: 11px; }
-        #bottom-guide span.highlight { color: #f1c40f; font-weight: 600; }
+        #bottom-guide span.key { background: #334155; padding: 3px 8px; border-radius: 6px; color: #f8fafc; font-size: 11px; font-weight: 600; border: 1px solid #475569; }
+        #bottom-guide span.highlight { color: #fbbf24; font-weight: 700; }
 
         /* Quiz Modal */
         #quiz-modal {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8);
-            width: 350px; text-align: center; opacity: 0; pointer-events: none;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.85);
+            width: 380px; text-align: center; opacity: 0; pointer-events: none;
+            transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         #quiz-modal.show { opacity: 1; transform: translate(-50%, -50%) scale(1); pointer-events: auto; }
-        .quiz-header { font-size: 16px; font-weight: 600; color: #0284c7; margin-bottom: 4px;}
-        .quiz-sub { font-size: 12px; color: #64748b; margin-bottom: 15px;}
-        .quiz-question { background: #f1f5f9; padding: 18px; border-radius: 12px; font-size: 28px; font-weight: 600; color: #1e293b; margin-bottom: 15px;}
-        .quiz-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;}
-        .btn-option { background-color: #0284c7; color: white; font-size: 16px; padding: 12px; border-radius: 8px; }
-        .btn-close { background-color: #ef4444; color: white; font-size: 12px; padding: 8px 20px; border-radius: 20px; width: auto; display: inline-block;}
+        .quiz-header { font-size: 18px; font-weight: 700; color: #0284c7; margin-bottom: 4px;}
+        .quiz-sub { font-size: 13px; color: #64748b; margin-bottom: 16px;}
+        .quiz-question { background: #f1f5f9; padding: 20px; border-radius: 16px; font-size: 32px; font-weight: 700; color: #0f172a; margin-bottom: 16px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);}
+        .quiz-options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;}
+        .btn-option { background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: white; font-size: 17px; padding: 14px; border-radius: 12px; box-shadow: 0 4px 12px rgba(2,132,199,0.3); }
+        .btn-close { background: #ef4444; color: white; font-size: 13px; padding: 10px 24px; border-radius: 30px; width: auto; display: inline-block;}
 
         /* Floating Elements */
         .floating-label {
             position: absolute; transform: translate(-50%, -100%);
-            background: #0f172a; color: #38bdf8; padding: 4px 12px; border-radius: 20px; border: 2px solid #38bdf8;
-            font-weight: 600; font-size: 12px; pointer-events: none; z-index: 5; text-align: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            background: #0f172a; color: #38bdf8; padding: 6px 14px; border-radius: 20px; border: 2px solid #38bdf8;
+            font-weight: 700; font-size: 13px; pointer-events: none; z-index: 5; text-align: center;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.35); animation: floatPulse 2s infinite ease-in-out;
         }
+        @keyframes floatPulse { 0%, 100% { transform: translate(-50%, -100%) translateY(0); } 50% { transform: translate(-50%, -100%) translateY(-6px); } }
+
         .floating-text-anim {
-            position: absolute; font-weight: 600; font-size: 20px;
-            pointer-events: none; z-index: 100; text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
-            animation: floatUp 1s ease-out forwards;
+            position: absolute; font-weight: 700; font-size: 22px;
+            pointer-events: none; z-index: 100; text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+            animation: floatUp 1.2s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
         }
         @keyframes floatUp {
-            0% { transform: translate(-50%, 0); opacity: 1; }
-            100% { transform: translate(-50%, -50px); opacity: 0; }
+            0% { transform: translate(-50%, 0) scale(0.6); opacity: 0; }
+            20% { transform: translate(-50%, -10px) scale(1.2); opacity: 1; }
+            100% { transform: translate(-50%, -60px) scale(1); opacity: 0; }
         }
         
         /* Auth Overlay & Form */
         #auth-overlay {
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: radial-gradient(circle, #38bdf8 0%, #0369a1 100%); z-index: 999; display: flex;
-            justify-content: center; align-items: center; flex-direction: column; color: white;
+            background: radial-gradient(circle at center, #38bdf8 0%, #0284c7 60%, #0369a1 100%);
+            z-index: 999; display: flex; justify-content: center; align-items: center; flex-direction: column; color: white;
         }
         .auth-card {
-            background: white; color: #1e293b; width: 360px; padding: 24px; border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.25); text-align: center;
+            background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(16px); color: #0f172a; width: 380px; padding: 28px; border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3); text-align: center; border: 1px solid rgba(255,255,255,0.8);
         }
-        .auth-card h2 { margin-top: 0; margin-bottom: 5px; color: #0284c7; font-size: 24px; }
-        .auth-card p { font-size: 13px; color: #64748b; margin-bottom: 20px; }
+        .auth-card h2 { margin-top: 0; margin-bottom: 6px; color: #0284c7; font-size: 26px; font-weight: 700; }
+        .auth-card p { font-size: 13px; color: #64748b; margin-bottom: 22px; }
         
-        .auth-tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; }
-        .auth-tab { flex: 1; padding: 10px; font-weight: 600; color: #94a3b8; cursor: pointer; }
-        .auth-tab.active { color: #0284c7; border-bottom: 2px solid #0284c7; }
+        .auth-tabs { display: flex; margin-bottom: 22px; border-bottom: 2px solid #e2e8f0; gap: 10px; }
+        .auth-tab { flex: 1; padding: 10px; font-weight: 600; color: #94a3b8; cursor: pointer; border-radius: 8px 8px 0 0; transition: all 0.2s; }
+        .auth-tab.active { color: #0284c7; border-bottom: 3px solid #0284c7; background: rgba(2,132,199,0.05); }
         
-        .form-group { text-align: left; margin-bottom: 14px; }
-        .form-group label { font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px; }
+        .form-group { text-align: left; margin-bottom: 16px; }
+        .form-group label { font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 6px; }
         .form-group input {
-            width: 100%; padding: 10px 14px; border: 1.5px solid #cbd5e1; border-radius: 8px;
-            font-size: 14px; font-family: 'Kanit', sans-serif; outline: none; transition: border 0.2s;
+            width: 100%; padding: 12px 16px; border: 2px solid #cbd5e1; border-radius: 12px;
+            font-size: 14px; font-family: 'Kanit', sans-serif; outline: none; transition: border 0.2s, box-shadow 0.2s;
         }
-        .form-group input:focus { border-color: #0284c7; }
+        .form-group input:focus { border-color: #0284c7; box-shadow: 0 0 0 4px rgba(2,132,199,0.15); }
         
-        .btn-auth { background: #0284c7; color: white; font-size: 16px; padding: 12px; margin-top: 10px; border-radius: 10px; }
-        .btn-guest { background: transparent; color: #64748b; font-size: 13px; margin-top: 10px; text-decoration: underline; cursor: pointer; border: none; }
+        .btn-auth { background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: white; font-size: 16px; padding: 13px; margin-top: 12px; border-radius: 12px; box-shadow: 0 4px 14px rgba(2,132,199,0.35); }
+        .btn-guest { background: transparent; color: #64748b; font-size: 13px; margin-top: 14px; text-decoration: underline; cursor: pointer; border: none; font-weight: 600; }
         
-        #auth-status { margin-top: 12px; font-size: 12px; min-height: 18px; font-weight: 600; }
+        #auth-status { margin-top: 14px; font-size: 13px; min-height: 20px; font-weight: 600; }
         .status-loading { color: #0284c7; }
         .status-success { color: #16a34a; }
         .status-error { color: #dc2626; }
@@ -151,11 +159,11 @@
 </head>
 <body>
 
-    <!-- Auth / Login Modal Overlay -->
+    <!-- Auth / Login Overlay -->
     <div id="auth-overlay">
         <div class="auth-card">
-            <h2>🌾 Mini Farm Island</h2>
-            <p>ระบบบัญชีผู้เล่น & บันทึกข้อมูล Google Sheet</p>
+            <h2>🌾 Mini Farm Island 3D</h2>
+            <p>ระบบสมาชิกร่วมกับ Google Sheets Sync</p>
             
             <div class="auth-tabs">
                 <div class="auth-tab active" id="tab-btn-login" onclick="switchAuthTab('login')">เข้าสู่ระบบ</div>
@@ -189,12 +197,12 @@
                     <label>รหัสผ่าน (Password)</label>
                     <input type="password" id="reg-password" placeholder="ตั้งรหัสผ่าน" required>
                 </div>
-                <button type="submit" class="btn-auth" style="background:#22c55e;">สมัครสมาชิกใหม่ ✨</button>
+                <button type="submit" class="btn-auth" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">สมัครสมาชิกใหม่ ✨</button>
             </form>
 
             <div id="auth-status"></div>
 
-            <button class="btn-guest" onclick="startAsGuest()">เล่นแบบไม่ลงชื่อเข้าใช้ (Guest)</button>
+            <button class="btn-guest" onclick="startAsGuest()">เล่นแบบไม่ลงชื่อเข้าใช้ (Guest Mode)</button>
         </div>
     </div>
 
@@ -220,9 +228,9 @@
                 <div class="val"><span id="ui-inventory">0</span> ชิ้น</div>
             </div>
         </div>
-        <button class="btn-sell" onclick="sellAll()">ขายผลผลิตทั้งหมด</button>
+        <button class="btn-sell" onclick="sellAll()">💰 ขายผลผลิตทั้งหมด</button>
         <button class="btn-save" onclick="saveGame(false)">💾 บันทึกเกม (Save Game)</button>
-        <div class="hint">ระบบจะ Auto Save เมื่อปิดหน้าจอ</div>
+        <div class="hint">ระบบ Auto Save ทำงานเมื่อปิดหน้าต่าง</div>
     </div>
 
     <!-- UI Right -->
@@ -240,7 +248,7 @@
                 </div>
                 <div class="item-row">
                     <span class="item-detail text-red">ปลูก: -10 🪙</span>
-                    <span class="item-detail">5 วิ</span>
+                    <span class="item-detail">⏱️ 5 วิ</span>
                 </div>
             </div>
             <div class="item-card" onclick="selectSeed('carrot', this)">
@@ -250,7 +258,7 @@
                 </div>
                 <div class="item-row">
                     <span class="item-detail text-red">ปลูก: -20 🪙</span>
-                    <span class="item-detail">8 วิ</span>
+                    <span class="item-detail">⏱️ 8 วิ</span>
                 </div>
             </div>
             <div class="item-card" onclick="selectSeed('cabbage', this)">
@@ -260,7 +268,7 @@
                 </div>
                 <div class="item-row">
                     <span class="item-detail text-red">ปลูก: -50 🪙</span>
-                    <span class="item-detail">12 วิ</span>
+                    <span class="item-detail">⏱️ 12 วิ</span>
                 </div>
             </div>
         </div>
@@ -335,7 +343,6 @@
 
         async function sendToSheet(payload) {
             try {
-                // Try 1: Standard POST with text/plain (prevents preflight CORS)
                 const res = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
                     redirect: 'follow',
@@ -347,14 +354,12 @@
             } catch(e1) {
                 console.warn('POST failed, trying GET fallback...', e1);
                 try {
-                    // Try 2: GET fallback with encoded query param
                     const getUrl = APPS_SCRIPT_URL + '?payload=' + encodeURIComponent(JSON.stringify(payload));
                     const res2 = await fetch(getUrl, { method: 'GET', redirect: 'follow' });
                     const data2 = await res2.json();
                     return data2;
                 } catch(e2) {
-                    console.warn('GET failed too, using Local Storage Account Fallback...', e2);
-                    // Try 3: Local Account Fallback (so game never blocks!)
+                    console.warn('GET fallback triggered offline mode...', e2);
                     if(payload.action === 'register') {
                         localStorage.setItem('app_user_' + payload.username, payload.password);
                         return { status: 'success', message: 'สมัครสมาชิกเรียบร้อย (โหมดออฟไลน์)' };
@@ -376,7 +381,7 @@
             event.preventDefault();
             const statusEl = document.getElementById('auth-status');
             statusEl.className = 'status-loading';
-            statusEl.innerText = 'กำลังเชื่อมต่อระบบป้อนข้อมูล Google Sheet...';
+            statusEl.innerText = 'กำลังเชื่อมต่อระบบ Google Sheet...';
 
             let payload = {};
             if(type === 'login') {
@@ -401,7 +406,6 @@
                 statusEl.className = 'status-success';
                 statusEl.innerText = type === 'login' ? 'เข้าสู่ระบบสำเร็จ!' : 'สมัครสมาชิกสำเร็จ!';
                 
-                // Also log login event
                 sendToSheet({ action: 'log_login', username: currentUser, timestamp: new Date().toISOString() });
                 
                 setTimeout(() => {
@@ -458,11 +462,10 @@
                 }
             }
 
-            showFloatingText(isAuto ? "Auto Saved 💾" : "บันทึกเกมเรียบร้อย 💾", "#22c55e", window.innerWidth/2, 60);
+            showFloatingText(isAuto ? "Auto Saved 💾" : "บันทึกเกมเรียบร้อย 💾", "#10b981", window.innerWidth/2, 60);
         }
 
         async function loadSavedGame() {
-            // Check local first
             const localData = localStorage.getItem('mini_farm_save_' + (currentUser || 'Guest'));
             let saveObj = null;
 
@@ -470,7 +473,6 @@
                 try { saveObj = JSON.parse(localData); } catch(e){}
             }
 
-            // Try loading from Google Sheet if logged in
             if(currentUser && currentUser !== 'Guest') {
                 const res = await sendToSheet({ action: 'load_game', username: currentUser });
                 if(res && res.status === 'success' && res.saveData) {
@@ -507,7 +509,6 @@
             }
         }
 
-        // Auto save triggers
         window.addEventListener('beforeunload', () => saveGame(true));
         window.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'hidden') saveGame(true);
@@ -522,15 +523,15 @@
             selectedSeed: 'tomato',
             houseLevel: 1,
             buffTime: 0,
-            wellState: 'ready', // ready, broken, buff
+            wellState: 'ready',
             wellTimer: 0,
             quizAnswer: 0
         };
 
         const Plants = {
-            tomato: { cost: 10, sell: 25, time: 5, color: 0xe74c3c, geo: 'sphere' },
-            carrot: { cost: 20, sell: 60, time: 8, color: 0xe67e22, geo: 'cone' },
-            cabbage: { cost: 50, sell: 200, time: 12, color: 0x2ecc71, geo: 'dodecahedron' }
+            tomato: { cost: 10, sell: 25, time: 5, color: 0xef4444, geo: 'sphere' },
+            carrot: { cost: 20, sell: 60, time: 8, color: 0xf97316, geo: 'cone' },
+            cabbage: { cost: 50, sell: 200, time: 12, color: 0x22c55e, geo: 'dodecahedron' }
         };
 
         // --- TONE.JS AUDIO ---
@@ -573,16 +574,16 @@
             }
         }
 
-        // --- THREE.JS SCENE SETUP ---
+        // --- THREE.JS GRAPHICS AAA POLISH ---
         const container = document.getElementById('canvas-container');
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x87ceeb);
-        scene.fog = new THREE.FogExp2(0x87ceeb, 0.007);
+        scene.fog = new THREE.FogExp2(0x87ceeb, 0.006);
 
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(0, 32, 45);
+        camera.position.set(0, 34, 46);
 
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.shadowMap.enabled = true;
@@ -597,34 +598,34 @@
         controls.maxDistance = 90;
         controls.target.set(0, 0, 0);
 
-        // --- LIGHTING ---
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.65);
+        // --- ENHANCED LIGHTING & ATMOSPHERE ---
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
         scene.add(ambientLight);
 
-        const dirLight = new THREE.DirectionalLight(0xfffaed, 0.85);
-        dirLight.position.set(40, 60, 30);
+        const dirLight = new THREE.DirectionalLight(0xfffaed, 0.9);
+        dirLight.position.set(45, 65, 35);
         dirLight.castShadow = true;
         dirLight.shadow.mapSize.width = 2048;
         dirLight.shadow.mapSize.height = 2048;
         dirLight.shadow.camera.near = 0.5;
         dirLight.shadow.camera.far = 150;
-        const d = 50;
+        const d = 55;
         dirLight.shadow.camera.left = -d;
         dirLight.shadow.camera.right = d;
         dirLight.shadow.camera.top = d;
         dirLight.shadow.camera.bottom = -d;
         scene.add(dirLight);
 
-        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x3d7042, 0.35);
+        const hemiLight = new THREE.HemisphereLight(0xe0f2fe, 0x3d7042, 0.4);
         scene.add(hemiLight);
 
-        // --- MATERIALS ---
+        // --- MATERIALS PALETTE ---
         const materials = {
             grass: new THREE.MeshLambertMaterial({ color: 0x7ec850 }),
-            sand: new THREE.MeshLambertMaterial({ color: 0xe6c875 }),
-            water: new THREE.MeshLambertMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.75 }),
+            sand: new THREE.MeshLambertMaterial({ color: 0xfef08a }),
+            water: new THREE.MeshLambertMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.78 }),
             wood: new THREE.MeshLambertMaterial({ color: 0x8d5b4c }),
-            woodLight: new THREE.MeshLambertMaterial({ color: 0xba8c63 }),
+            woodLight: new THREE.MeshLambertMaterial({ color: 0xd97706 }),
             stone: new THREE.MeshLambertMaterial({ color: 0x94a3b8 }),
             leaf: new THREE.MeshLambertMaterial({ color: 0x22c55e }),
             sakuraLeaf: new THREE.MeshLambertMaterial({ color: 0xf472b6 }),
@@ -637,11 +638,13 @@
             skin: new THREE.MeshLambertMaterial({ color: 0xffdbac }),
             shirt: new THREE.MeshLambertMaterial({ color: 0xef4444 }),
             overalls: new THREE.MeshLambertMaterial({ color: 0x1d4ed8 }),
-            strawHat: new THREE.MeshLambertMaterial({ color: 0xfacc15 })
+            strawHat: new THREE.MeshLambertMaterial({ color: 0xfacc15 }),
+            white: new THREE.MeshLambertMaterial({ color: 0xffffff }),
+            orange: new THREE.MeshLambertMaterial({ color: 0xf97316 })
         };
 
-        // --- WATER OCEAN ---
-        const waterGeo = new THREE.PlaneGeometry(300, 300, 40, 40);
+        // --- WATER OCEAN WITH 3D WAVE ANIMATION ---
+        const waterGeo = new THREE.PlaneGeometry(320, 320, 45, 45);
         const water = new THREE.Mesh(waterGeo, materials.water);
         water.rotation.x = -Math.PI / 2;
         water.position.y = -2.5;
@@ -652,23 +655,23 @@
         for (let i = 0; i < posAttribute.count; i++) {
             waterVertices.push({
                 x: posAttribute.getX(i), y: posAttribute.getY(i), z: posAttribute.getZ(i),
-                ang: Math.random() * Math.PI * 2, amp: 0.15 + Math.random() * 0.2, speed: 0.015 + Math.random() * 0.02
+                ang: Math.random() * Math.PI * 2, amp: 0.18 + Math.random() * 0.22, speed: 0.018 + Math.random() * 0.02
             });
         }
 
-        // --- ISLAND GENERATION ---
+        // --- ISLAND CREATION ---
         function createIsland(radius, x, z) {
             const group = new THREE.Group();
             group.position.set(x, -2, z);
             
-            const topGeo = new THREE.CylinderGeometry(radius, radius*0.92, 2, 40);
+            const topGeo = new THREE.CylinderGeometry(radius, radius*0.92, 2, 44);
             const top = new THREE.Mesh(topGeo, materials.grass);
             top.position.y = 1;
             top.receiveShadow = true;
             top.castShadow = true;
             group.add(top);
 
-            const botGeo = new THREE.CylinderGeometry(radius*0.92, radius*0.5, 3.5, 40);
+            const botGeo = new THREE.CylinderGeometry(radius*0.92, radius*0.5, 3.5, 44);
             const bot = new THREE.Mesh(botGeo, materials.sand);
             bot.position.y = -1.75;
             group.add(bot);
@@ -716,16 +719,17 @@
         createBridge(0, 0, 31, 5);
         createBridge(0, 0, -31, 5);
 
-        // --- MAP DECORATIONS & PROPS ---
+        // --- SCENERY DECORATIONS ---
         function createPath(x, z, sx, sz) {
-            const path = new THREE.Mesh(new THREE.BoxGeometry(sx, 0.02, sz), new THREE.MeshLambertMaterial({ color: 0xc2b280 }));
+            const path = new THREE.Mesh(new THREE.BoxGeometry(sx, 0.02, sz), new THREE.MeshLambertMaterial({ color: 0xd97706 }));
             path.position.set(x, 0.01, z);
             path.receiveShadow = true;
             scene.add(path);
         }
-        createPath(0, -3, 3, 10);  
-        createPath(-6, -5, 10, 3); 
+        createPath(0, -3, 3.2, 10);  
+        createPath(-6, -5, 10, 3.2); 
 
+        // 1. WINDMILL
         const windmillGroup = new THREE.Group();
         windmillGroup.position.set(0, 0, -32);
 
@@ -753,6 +757,7 @@
         windmillGroup.add(bladesGroup);
         scene.add(windmillGroup);
 
+        // 2. MARKET STALL
         const marketGroup = new THREE.Group();
         marketGroup.position.set(31, 0, 5);
 
@@ -782,6 +787,7 @@
         createCrate(3, 0.4);
         scene.add(marketGroup);
 
+        // 3. SAKURA TREE & ANIMAL PETS
         const sakuraGroup = new THREE.Group();
         sakuraGroup.position.set(-31, 0, 5);
 
@@ -802,6 +808,30 @@
 
         scene.add(sakuraGroup);
 
+        // Animated Voxel Pets
+        const pets = [];
+        function createPet(x, z, type) {
+            const pGroup = new THREE.Group();
+            pGroup.position.set(x, 0, z);
+
+            const mat = (type === 'cat') ? materials.orange : materials.white;
+            const body = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.4, 0.4), mat);
+            body.position.y = 0.3;
+            body.castShadow = true;
+            pGroup.add(body);
+
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 0.4), mat);
+            head.position.set(0.35, 0.6, 0);
+            head.castShadow = true;
+            pGroup.add(head);
+
+            scene.add(pGroup);
+            pets.push({ obj: pGroup, originX: x, originZ: z, speed: 0.5 + Math.random()*0.5 });
+        }
+        createPet(-6, 2, 'cat');
+        createPet(6, 2, 'dog');
+
+        // Trees & Rocks on Main Island
         function createTree(x, z, scale=1) {
             const group = new THREE.Group();
             const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.5, 2.2), materials.wood);
@@ -907,7 +937,7 @@
 
         scene.add(well);
 
-        // --- CUTE CHIBI FARMER CHARACTER ---
+        // --- CUTE CHIBI FARMER CHARACTER WITH WATERING CAN ---
         const farmer = new THREE.Group();
         
         const fHead = new THREE.Mesh(new THREE.SphereGeometry(0.65, 16, 16), materials.skin);
@@ -940,9 +970,15 @@
         const leftArm = new THREE.Mesh(armGeo, materials.shirt);
         leftArm.position.set(-0.55, 1.1, 0);
         farmer.add(leftArm);
+
         const rightArm = leftArm.clone();
         rightArm.position.set(0.55, 1.1, 0);
         farmer.add(rightArm);
+
+        // Tiny Watering Can Props in Right Hand
+        const canProp = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.3, 8), materials.houseRoof2);
+        canProp.position.set(0.65, 0.8, 0.2);
+        farmer.add(canProp);
 
         const legGeo = new THREE.CylinderGeometry(0.14, 0.14, 0.6);
         const leftLeg = new THREE.Mesh(legGeo, materials.wood);
@@ -955,7 +991,7 @@
         farmer.position.set(0, 0, 12);
         scene.add(farmer);
 
-        // --- FARM PLOTS (Solid 3D Box Geometry for guaranteed clicking) ---
+        // --- FARM PLOTS (Guaranteed 3D Box Clicking) ---
         const plots = [];
         const plotGroup = new THREE.Group();
         plotGroup.position.set(0, 0, 4); 
@@ -987,7 +1023,7 @@
             dodecahedron: new THREE.DodecahedronGeometry(0.7)
         };
 
-        // --- PARTICLES ---
+        // --- PARTICLES & SPARKLES ---
         const particles = [];
         
         function createSmoke() {
@@ -1010,13 +1046,13 @@
         }
 
         function createSparks(x, y, z) {
-            for(let i=0; i<3; i++) {
-                const spark = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 0.1), new THREE.MeshBasicMaterial({ color: 0xef4444 }));
+            for(let i=0; i<4; i++) {
+                const spark = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, 0.12), new THREE.MeshBasicMaterial({ color: 0xfacc15 }));
                 spark.position.set(x, y, z);
                 scene.add(spark);
                 particles.push({ 
                     mesh: spark, type: 'spark', life: 1, 
-                    vx: (Math.random()-0.5)*0.2, vy: Math.random()*0.3, vz: (Math.random()-0.5)*0.2 
+                    vx: (Math.random()-0.5)*0.25, vy: Math.random()*0.35, vz: (Math.random()-0.5)*0.25 
                 });
             }
         }
@@ -1030,7 +1066,7 @@
             div.style.left = screenX + 'px';
             div.style.top = screenY + 'px';
             document.body.appendChild(div);
-            setTimeout(() => div.remove(), 1000);
+            setTimeout(() => div.remove(), 1200);
         }
 
         function toScreenPosition(obj, camera) {
@@ -1044,7 +1080,7 @@
             return { x, y, z: vector.z };
         }
 
-        // --- INPUT & CONTROLS ---
+        // --- INPUT CONTROLS & RAYCASTING ---
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
 
@@ -1071,7 +1107,6 @@
             mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
             raycaster.setFromCamera(mouse, camera);
 
-            // Check Well click
             const wellIntersects = raycaster.intersectObjects(well.children);
             if(wellIntersects.length > 0) {
                 if(Game.wellState === 'ready') openQuiz();
@@ -1082,7 +1117,6 @@
                 return;
             }
 
-            // Check Plots click
             const intersects = raycaster.intersectObjects(plots);
             if (intersects.length > 0) {
                 const plotMesh = intersects[0].object;
@@ -1110,8 +1144,8 @@
                         plot.meshObj = pMesh;
 
                         const barGroup = new THREE.Group();
-                        const bgBar = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.25), new THREE.MeshBasicMaterial({color: 0x1e293b, side: THREE.DoubleSide}));
-                        const fgBar = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 0.15), new THREE.MeshBasicMaterial({color: 0x22c55e, side: THREE.DoubleSide}));
+                        const bgBar = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.25), new THREE.MeshBasicMaterial({color: 0x0f172a, side: THREE.DoubleSide}));
+                        const fgBar = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 0.15), new THREE.MeshBasicMaterial({color: 0x10b981, side: THREE.DoubleSide}));
                         fgBar.position.z = 0.01;
                         fgBar.position.x = -0.7; 
                         fgBar.geometry.translate(0.7, 0, 0); 
@@ -1132,7 +1166,8 @@
                     
                     updateUI();
                     playSound('harvest');
-                    showFloatingText(`+1 📦`, "#22c55e", event.clientX, event.clientY);
+                    createSparks(plotMesh.position.x, 1, plotMesh.position.z + 4);
+                    showFloatingText(`+1 📦`, "#10b981", event.clientX, event.clientY);
                     
                     plotMesh.remove(plot.meshObj);
                     plot.state = 'empty';
@@ -1145,7 +1180,7 @@
             }
         }
 
-        // --- UI LOGIC ---
+        // --- UI & GAME ENGINE LOOP ---
         function updateUI() {
             document.getElementById('ui-money').innerText = Game.money;
             document.getElementById('ui-inventory').innerText = inventoryItems.length;
@@ -1185,7 +1220,7 @@
                 inventoryItems = [];
                 updateUI();
                 playSound('sell');
-                showFloatingText(`+${total} 🪙`, "#facc15", window.innerWidth/2, window.innerHeight/2);
+                showFloatingText(`+${total} 🪙`, "#fbbf24", window.innerWidth/2, window.innerHeight/2);
             } else {
                 playSound('error');
             }
@@ -1219,7 +1254,6 @@
             }
         }
 
-        // --- QUIZ MINIGAME ---
         function openQuiz() {
             if(Game.wellState !== 'ready') return;
             const num1 = Math.floor(Math.random() * 50) + 10;
@@ -1265,7 +1299,7 @@
             }
         }
 
-        // --- MAIN ANIMATION LOOP ---
+        // --- MAIN RENDER LOOP ---
         const clock = new THREE.Clock();
 
         function animate() {
@@ -1275,9 +1309,17 @@
 
             controls.update();
 
-            bladesGroup.rotation.z += dt * 0.8;
+            // Windmill rotation
+            bladesGroup.rotation.z += dt * 0.9;
 
-            // Farmer Movement
+            // Pets wandering
+            pets.forEach(p => {
+                p.obj.position.x = p.originX + Math.sin(time * p.speed) * 1.5;
+                p.obj.position.z = p.originZ + Math.cos(time * p.speed) * 1.5;
+                p.obj.rotation.y = Math.atan2(Math.cos(time * p.speed), Math.sin(time * p.speed));
+            });
+
+            // Farmer Movement & Bouncy Animations
             const moveSpeed = 16 * dt;
             let moveX = 0;
             let moveZ = 0;
@@ -1296,21 +1338,21 @@
                 farmer.position.z = THREE.MathUtils.clamp(farmer.position.z, -limit, limit);
 
                 farmer.rotation.y = Math.atan2(moveX, moveZ);
-                farmer.position.y = Math.abs(Math.sin(time * 14)) * 0.35;
+                farmer.position.y = Math.abs(Math.sin(time * 15)) * 0.38;
 
-                leftArm.rotation.x = Math.sin(time * 14) * 0.6;
-                rightArm.rotation.x = -Math.sin(time * 14) * 0.6;
-                leftLeg.rotation.x = -Math.sin(time * 14) * 0.6;
-                rightLeg.rotation.x = Math.sin(time * 14) * 0.6;
+                leftArm.rotation.x = Math.sin(time * 15) * 0.6;
+                rightArm.rotation.x = -Math.sin(time * 15) * 0.6;
+                leftLeg.rotation.x = -Math.sin(time * 15) * 0.6;
+                rightLeg.rotation.x = Math.sin(time * 15) * 0.6;
             } else {
-                farmer.position.y = 0;
+                farmer.position.y = Math.sin(time * 2) * 0.04; // Idle breathing
                 leftArm.rotation.x = 0;
                 rightArm.rotation.x = 0;
                 leftLeg.rotation.x = 0;
                 rightLeg.rotation.x = 0;
             }
 
-            // Water Waves
+            // Water Wave Animation
             const positions = waterGeo.attributes.position;
             for (let i = 0; i < waterVertices.length; i++) {
                 const v = waterVertices[i];
@@ -1319,7 +1361,7 @@
             }
             positions.needsUpdate = true;
 
-            // Particles update
+            // Particles Update
             createSmoke();
             for(let i=particles.length-1; i>=0; i--) {
                 let p = particles[i];
@@ -1346,7 +1388,7 @@
                 }
             }
 
-            // Plants Growth logic
+            // Crop Growth & Juicy Scale Bounce
             const speedMult = Game.buffTime > 0 ? 1.5 : 1;
             plots.forEach(plotMesh => {
                 const plot = plotMesh.userData;
@@ -1362,18 +1404,20 @@
                     if(plot.meshObj) {
                         const s = 0.1 + (plot.progress * 0.8);
                         plot.meshObj.scale.set(s, s, s);
+                        plot.meshObj.rotation.y += dt * 0.5;
                     }
 
                     if(plot.progress >= 1) {
                         plot.state = 'ready';
                         plotMesh.remove(plot.barObj);
                         plot.barObj = null;
-                        plot.meshObj.scale.set(1.2, 1.2, 1.2);
+                        plot.meshObj.scale.set(1.25, 1.25, 1.25);
+                        createSparks(plotMesh.position.x, 1, plotMesh.position.z + 4);
                     }
                 }
             });
 
-            // Well Label UI Position
+            // Well Label
             const wLabel = document.getElementById('well-label');
             const wPos = toScreenPosition(well, camera);
             
