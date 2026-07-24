@@ -24,10 +24,10 @@
             z-index: 10;
         }
 
-        #left-panel { top: 20px; left: 20px; width: 230px; }
+        #left-panel { top: 20px; left: 20px; width: 240px; }
         #right-panel { top: 20px; right: 20px; width: 280px; max-height: calc(100vh - 40px); overflow-y: auto; }
         
-        .header { font-weight: 600; font-size: 18px; color: #2c3e50; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;}
+        .header { font-weight: 600; font-size: 18px; color: #2c3e50; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;}
         .stat-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
         .stat-row .icon { font-size: 22px; background: #f0f3f4; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
         .stat-row .label { font-size: 11px; color: #7f8c8d; }
@@ -42,7 +42,16 @@
         
         .btn-sell { background-color: #f1c40f; color: #333; margin-top: 5px; box-shadow: 0 4px 10px rgba(241,196,15,0.3); }
         .btn-sell:hover { opacity: 0.9; }
+        .btn-save { background-color: #2ecc71; color: white; margin-top: 8px; box-shadow: 0 4px 10px rgba(46,204,113,0.3); }
+        .btn-save:hover { opacity: 0.9; }
+        
         .hint { font-size: 10px; color: #95a5a6; text-align: center; margin-top: 6px; }
+
+        /* User badge */
+        .user-badge {
+            background: #e2e8f0; border-radius: 20px; padding: 4px 10px; font-size: 12px; color: #334155; font-weight: 600;
+            display: inline-flex; align-items: center; gap: 4px;
+        }
 
         /* Tabs */
         .tabs { display: flex; margin-bottom: 15px; border-bottom: 2px solid #ecf0f1; }
@@ -106,29 +115,97 @@
             100% { transform: translate(-50%, -50px); opacity: 0; }
         }
         
-        #audio-overlay {
+        /* Auth Overlay & Form */
+        #auth-overlay {
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
             background: radial-gradient(circle, #38bdf8 0%, #0369a1 100%); z-index: 999; display: flex;
             justify-content: center; align-items: center; flex-direction: column; color: white;
         }
-        #audio-overlay h1 { font-size: 38px; margin-bottom: 5px; text-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-        #audio-overlay p { font-size: 16px; opacity: 0.9; margin-bottom: 20px; }
-        #audio-overlay button { width: 220px; font-size: 18px; padding: 14px; background: #22c55e; color: white; border-radius: 30px; box-shadow: 0 6px 20px rgba(0,0,0,0.2); }
+        .auth-card {
+            background: white; color: #1e293b; width: 360px; padding: 24px; border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25); text-align: center;
+        }
+        .auth-card h2 { margin-top: 0; margin-bottom: 5px; color: #0284c7; font-size: 24px; }
+        .auth-card p { font-size: 13px; color: #64748b; margin-bottom: 20px; }
+        
+        .auth-tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; }
+        .auth-tab { flex: 1; padding: 10px; font-weight: 600; color: #94a3b8; cursor: pointer; }
+        .auth-tab.active { color: #0284c7; border-bottom: 2px solid #0284c7; }
+        
+        .form-group { text-align: left; margin-bottom: 14px; }
+        .form-group label { font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px; }
+        .form-group input {
+            width: 100%; padding: 10px 14px; border: 1.5px solid #cbd5e1; border-radius: 8px;
+            font-size: 14px; font-family: 'Kanit', sans-serif; outline: none; transition: border 0.2s;
+        }
+        .form-group input:focus { border-color: #0284c7; }
+        
+        .btn-auth { background: #0284c7; color: white; font-size: 16px; padding: 12px; margin-top: 10px; border-radius: 10px; }
+        .btn-guest { background: transparent; color: #64748b; font-size: 13px; margin-top: 10px; text-decoration: underline; cursor: pointer; border: none; }
+        
+        #auth-status { margin-top: 12px; font-size: 12px; min-height: 18px; font-weight: 600; }
+        .status-loading { color: #0284c7; }
+        .status-success { color: #16a34a; }
+        .status-error { color: #dc2626; }
     </style>
 </head>
 <body>
 
-    <div id="audio-overlay">
-        <h1>🌾 Mini Farm Island 3D</h1>
-        <p>คลิกเพื่อเริ่มเกมและเปิดระบบเสียง</p>
-        <button onclick="initGame()">เริ่มเล่นเกม 🎮</button>
+    <!-- Auth / Login Modal Overlay -->
+    <div id="auth-overlay">
+        <div class="auth-card">
+            <h2>🌾 Mini Farm Island</h2>
+            <p>ระบบบัญชีผู้เล่น & บันทึกข้อมูล Google Sheet</p>
+            
+            <div class="auth-tabs">
+                <div class="auth-tab active" id="tab-btn-login" onclick="switchAuthTab('login')">เข้าสู่ระบบ</div>
+                <div class="auth-tab" id="tab-btn-register" onclick="switchAuthTab('register')">สมัครสมาชิก</div>
+            </div>
+
+            <!-- Login Form -->
+            <form id="form-login" onsubmit="handleAuth(event, 'login')">
+                <div class="form-group">
+                    <label>ชื่อผู้ใช้ (Username)</label>
+                    <input type="text" id="login-username" placeholder="ระบุชื่อผู้ใช้" required>
+                </div>
+                <div class="form-group">
+                    <label>รหัสผ่าน (Password)</label>
+                    <input type="password" id="login-password" placeholder="ระบุรหัสผ่าน" required>
+                </div>
+                <button type="submit" class="btn-auth">เข้าสู่ระบบ & เริ่มเกม 🎮</button>
+            </form>
+
+            <!-- Register Form -->
+            <form id="form-register" style="display:none;" onsubmit="handleAuth(event, 'register')">
+                <div class="form-group">
+                    <label>ชื่อแสดงในเกม (Display Name)</label>
+                    <input type="text" id="reg-name" placeholder="เช่น Farmer John" required>
+                </div>
+                <div class="form-group">
+                    <label>ชื่อผู้ใช้ (Username)</label>
+                    <input type="text" id="reg-username" placeholder="ตั้งชื่อผู้ใช้" required>
+                </div>
+                <div class="form-group">
+                    <label>รหัสผ่าน (Password)</label>
+                    <input type="password" id="reg-password" placeholder="ตั้งรหัสผ่าน" required>
+                </div>
+                <button type="submit" class="btn-auth" style="background:#22c55e;">สมัครสมาชิกใหม่ ✨</button>
+            </form>
+
+            <div id="auth-status"></div>
+
+            <button class="btn-guest" onclick="startAsGuest()">เล่นแบบไม่ลงชื่อเข้าใช้ (Guest)</button>
+        </div>
     </div>
 
     <div id="canvas-container"></div>
 
     <!-- UI Left -->
     <div id="left-panel" class="panel">
-        <div class="header">🏡 Mini Farm Island</div>
+        <div class="header">
+            <span>🏡 Mini Farm</span>
+            <span class="user-badge" id="ui-user">👤 Guest</span>
+        </div>
         <div class="stat-row">
             <div class="icon">🪙</div>
             <div class="info">
@@ -144,7 +221,8 @@
             </div>
         </div>
         <button class="btn-sell" onclick="sellAll()">ขายผลผลิตทั้งหมด</button>
-        <div class="hint">คลิกเพื่อรับเงินจากผลผลิตทั้งหมด</div>
+        <button class="btn-save" onclick="saveGame(false)">💾 บันทึกเกม (Save Game)</button>
+        <div class="hint">ระบบจะ Auto Save เมื่อปิดหน้าจอ</div>
     </div>
 
     <!-- UI Right -->
@@ -243,6 +321,174 @@
     <div id="well-label" class="floating-label">บ่อน้ำ QUIZ 💧</div>
 
     <script>
+        // --- GOOGLE SHEETS & AUTH INTEGRATION ---
+        const APPS_SCRIPT_URL = 'https://script.google.com/a/macros/email.kmutnb.ac.th/s/AKfycbwr-H1AxVYNB8iIaPOZTV2KRgarD9ehxWZn3pj9wsk3H_HSnmLFeRXF7UBLGAgkquN5/exec';
+        let currentUser = null;
+
+        function switchAuthTab(type) {
+            document.getElementById('tab-btn-login').classList.toggle('active', type === 'login');
+            document.getElementById('tab-btn-register').classList.toggle('active', type === 'register');
+            document.getElementById('form-login').style.display = (type === 'login') ? 'block' : 'none';
+            document.getElementById('form-register').style.display = (type === 'register') ? 'block' : 'none';
+            document.getElementById('auth-status').innerText = '';
+        }
+
+        async function sendToSheet(payload) {
+            try {
+                const res = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                });
+                return await res.json();
+            } catch(e) {
+                console.warn('Sheet API Warning:', e);
+                return { status: 'fallback', message: e.message };
+            }
+        }
+
+        async function handleAuth(event, type) {
+            event.preventDefault();
+            const statusEl = document.getElementById('auth-status');
+            statusEl.className = 'status-loading';
+            statusEl.innerText = 'กำลังเชื่อมต่อระบบป้อนข้อมูล Google Sheet...';
+
+            let payload = {};
+            if(type === 'login') {
+                const u = document.getElementById('login-username').value.trim();
+                const p = document.getElementById('login-password').value.trim();
+                payload = { action: 'login', username: u, password: p, timestamp: new Date().toISOString() };
+                currentUser = u;
+            } else {
+                const name = document.getElementById('reg-name').value.trim();
+                const u = document.getElementById('reg-username').value.trim();
+                const p = document.getElementById('reg-password').value.trim();
+                payload = { action: 'register', name, username: u, password: p, timestamp: new Date().toISOString() };
+                currentUser = u;
+            }
+
+            const res = await sendToSheet(payload);
+            
+            if(res.status === 'error') {
+                statusEl.className = 'status-error';
+                statusEl.innerText = res.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่';
+            } else {
+                statusEl.className = 'status-success';
+                statusEl.innerText = type === 'login' ? 'เข้าสู่ระบบสำเร็จ!' : 'สมัครสมาชิกสำเร็จ!';
+                
+                // Also log login event
+                sendToSheet({ action: 'log_login', username: currentUser, timestamp: new Date().toISOString() });
+                
+                setTimeout(() => {
+                    document.getElementById('auth-overlay').style.display = 'none';
+                    document.getElementById('ui-user').innerText = `👤 ${currentUser}`;
+                    setupAudio();
+                    loadSavedGame();
+                }, 800);
+            }
+        }
+
+        function startAsGuest() {
+            currentUser = 'Guest';
+            document.getElementById('auth-overlay').style.display = 'none';
+            document.getElementById('ui-user').innerText = `👤 Guest`;
+            setupAudio();
+            loadSavedGame();
+        }
+
+        // --- SAVE / LOAD GAME SYSTEM ---
+        function getSavePayload() {
+            return {
+                username: currentUser || 'Guest',
+                money: Game.money,
+                activePlots: Game.activePlots,
+                houseLevel: Game.houseLevel,
+                inventory: inventoryItems,
+                plots: plots.map(p => ({
+                    state: p.userData.state,
+                    plantType: p.userData.plantType,
+                    progress: p.userData.progress || 0
+                })),
+                timestamp: new Date().toISOString()
+            };
+        }
+
+        async function saveGame(isAuto = false) {
+            const data = getSavePayload();
+            localStorage.setItem('mini_farm_save_' + (currentUser || 'Guest'), JSON.stringify(data));
+
+            if(currentUser && currentUser !== 'Guest') {
+                const payload = {
+                    action: 'save_game',
+                    username: currentUser,
+                    saveData: JSON.stringify(data),
+                    timestamp: new Date().toISOString()
+                };
+
+                if(isAuto && typeof navigator.sendBeacon === 'function') {
+                    const blob = new Blob([JSON.stringify(payload)], { type: 'text/plain;charset=utf-8' });
+                    navigator.sendBeacon(APPS_SCRIPT_URL, blob);
+                } else {
+                    sendToSheet(payload);
+                }
+            }
+
+            showFloatingText(isAuto ? "Auto Saved 💾" : "บันทึกเกมเรียบร้อย 💾", "#22c55e", window.innerWidth/2, 60);
+        }
+
+        async function loadSavedGame() {
+            // Check local first
+            const localData = localStorage.getItem('mini_farm_save_' + (currentUser || 'Guest'));
+            let saveObj = null;
+
+            if(localData) {
+                try { saveObj = JSON.parse(localData); } catch(e){}
+            }
+
+            // Try loading from Google Sheet if logged in
+            if(currentUser && currentUser !== 'Guest') {
+                const res = await sendToSheet({ action: 'load_game', username: currentUser });
+                if(res && res.status === 'success' && res.saveData) {
+                    try { saveObj = JSON.parse(res.saveData); } catch(e){}
+                }
+            }
+
+            if(saveObj) {
+                Game.money = saveObj.money ?? 100;
+                Game.activePlots = saveObj.activePlots ?? 6;
+                Game.houseLevel = saveObj.houseLevel ?? 1;
+                inventoryItems = saveObj.inventory || [];
+                
+                buildHouse(Game.houseLevel);
+
+                if(saveObj.plots && Array.isArray(saveObj.plots)) {
+                    saveObj.plots.forEach((pData, idx) => {
+                        if(idx < plots.length) {
+                            const pMesh = plots[idx];
+                            pMesh.userData.state = pData.state || 'empty';
+                            pMesh.userData.plantType = pData.plantType || null;
+                            pMesh.userData.progress = pData.progress || 0;
+
+                            if(pMesh.userData.state === 'locked') {
+                                pMesh.material = materials.plotLocked;
+                            } else {
+                                pMesh.material = new THREE.MeshLambertMaterial({ color: 0x854d0e });
+                            }
+                        }
+                    });
+                }
+                updateUI();
+                showFloatingText("โหลดข้อมูลเกมสำเร็จ 🎮", "#38bdf8", window.innerWidth/2, 100);
+            }
+        }
+
+        // Auto save triggers
+        window.addEventListener('beforeunload', () => saveGame(true));
+        window.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') saveGame(true);
+        });
+        setInterval(() => { if (currentUser && currentUser !== 'Guest') saveGame(true); }, 45000);
+
         // --- GAME STATE ---
         const Game = {
             money: 100,
@@ -261,8 +507,6 @@
             carrot: { cost: 20, sell: 60, time: 8, color: 0xe67e22, geo: 'cone' },
             cabbage: { cost: 50, sell: 200, time: 12, color: 0x2ecc71, geo: 'dodecahedron' }
         };
-
-        let inventoryItems = [];
 
         // --- TONE.JS AUDIO ---
         let synth, polySynth;
@@ -408,17 +652,15 @@
             return group;
         }
 
-        // 4 Key Islands Layout
-        const mainIsland = createIsland(26, 0, 0);         // Main Farm Island
-        const northIsland = createIsland(13, 0, -45);      // Windmill Island
-        const eastIsland = createIsland(14, 42, 10);       // Market Island
-        const westIsland = createIsland(12, -42, 12);      // Sakura Sanctuary Island
+        const mainIsland = createIsland(24, 0, 0);         
+        const northIsland = createIsland(11, 0, -32);      
+        const eastIsland = createIsland(11, 31, 5);        
+        const westIsland = createIsland(10, -31, 5);       
 
-        // Bridges Connecting Islands
         function createBridge(x1, z1, x2, z2) {
             const dx = x2 - x1;
             const dz = z2 - z1;
-            const dist = Math.sqrt(dx*dx + dz*dz) - 16;
+            const dist = Math.sqrt(dx*dx + dz*dz) - 18;
             const cx = (x1 + x2) / 2;
             const cz = (z1 + z2) / 2;
             const angle = Math.atan2(dx, dz);
@@ -427,61 +669,57 @@
             bridgeGroup.position.set(cx, -0.1, cz);
             bridgeGroup.rotation.y = angle;
 
-            const plankGeo = new THREE.BoxGeometry(3.5, 0.4, dist);
+            const plankGeo = new THREE.BoxGeometry(3.2, 0.4, dist);
             const planks = new THREE.Mesh(plankGeo, materials.wood);
             planks.receiveShadow = true;
             planks.castShadow = true;
             bridgeGroup.add(planks);
 
-            // Handrails
             const railGeo = new THREE.CylinderGeometry(0.1, 0.1, dist);
             const r1 = new THREE.Mesh(railGeo, materials.woodLight);
             r1.rotation.x = Math.PI / 2;
-            r1.position.set(-1.6, 1.2, 0);
+            r1.position.set(-1.5, 1.1, 0);
             bridgeGroup.add(r1);
 
             const r2 = r1.clone();
-            r2.position.set(1.6, 1.2, 0);
+            r2.position.set(1.5, 1.1, 0);
             bridgeGroup.add(r2);
 
             scene.add(bridgeGroup);
         }
-        createBridge(0, 0, 0, -45);
-        createBridge(0, 0, 42, 10);
-        createBridge(0, 0, -42, 12);
+        createBridge(0, 0, 0, -32);
+        createBridge(0, 0, 31, 5);
+        createBridge(0, 0, -31, 5);
 
         // --- MAP DECORATIONS & PROPS ---
-
-        // Cobblestone Paths on Main Island
         function createPath(x, z, sx, sz) {
             const path = new THREE.Mesh(new THREE.BoxGeometry(sx, 0.02, sz), new THREE.MeshLambertMaterial({ color: 0xc2b280 }));
             path.position.set(x, 0.01, z);
             path.receiveShadow = true;
             scene.add(path);
         }
-        createPath(0, -3, 3, 10);  // House to Plots
-        createPath(-6, -5, 10, 3); // House to Well
+        createPath(0, -3, 3, 10);  
+        createPath(-6, -5, 10, 3); 
 
-        // 1. WINDMILL (North Island)
         const windmillGroup = new THREE.Group();
-        windmillGroup.position.set(0, 0, -45);
+        windmillGroup.position.set(0, 0, -32);
 
-        const wmTowerGeo = new THREE.CylinderGeometry(2.5, 3.5, 9, 8);
+        const wmTowerGeo = new THREE.CylinderGeometry(2.2, 3.2, 8, 8);
         const wmTower = new THREE.Mesh(wmTowerGeo, materials.houseWall);
-        wmTower.position.y = 4.5;
+        wmTower.position.y = 4;
         wmTower.castShadow = true;
         windmillGroup.add(wmTower);
 
-        const wmRoof = new THREE.Mesh(new THREE.ConeGeometry(3, 2.5, 8), materials.houseRoof1);
-        wmRoof.position.y = 10.25;
+        const wmRoof = new THREE.Mesh(new THREE.ConeGeometry(2.8, 2.2, 8), materials.houseRoof1);
+        wmRoof.position.y = 9.1;
         windmillGroup.add(wmRoof);
 
         const bladesGroup = new THREE.Group();
-        bladesGroup.position.set(0, 8.5, 2.7);
+        bladesGroup.position.set(0, 7.5, 2.4);
 
         for(let i = 0; i < 4; i++) {
-            const blade = new THREE.Mesh(new THREE.BoxGeometry(0.8, 7, 0.1), materials.woodLight);
-            blade.position.y = 3.5;
+            const blade = new THREE.Mesh(new THREE.BoxGeometry(0.7, 6, 0.1), materials.woodLight);
+            blade.position.y = 3;
             const pivot = new THREE.Group();
             pivot.rotation.z = (Math.PI / 2) * i;
             pivot.add(blade);
@@ -490,65 +728,55 @@
         windmillGroup.add(bladesGroup);
         scene.add(windmillGroup);
 
-        // 2. MARKET STALL & CRATES (East Island)
         const marketGroup = new THREE.Group();
-        marketGroup.position.set(42, 0, 10);
+        marketGroup.position.set(31, 0, 5);
 
-        const stallCounter = new THREE.Mesh(new THREE.BoxGeometry(5, 2, 2.5), materials.wood);
-        stallCounter.position.y = 1;
+        const stallCounter = new THREE.Mesh(new THREE.BoxGeometry(4.5, 1.8, 2.2), materials.wood);
+        stallCounter.position.y = 0.9;
         stallCounter.castShadow = true;
         marketGroup.add(stallCounter);
 
         const roofMatStall = new THREE.MeshLambertMaterial({ color: 0xef4444 });
-        const stallRoof = new THREE.Mesh(new THREE.BoxGeometry(5.4, 0.4, 3.2), roofMatStall);
-        stallRoof.position.y = 4;
+        const stallRoof = new THREE.Mesh(new THREE.BoxGeometry(4.8, 0.35, 2.8), roofMatStall);
+        stallRoof.position.y = 3.6;
         marketGroup.add(stallRoof);
 
-        for(let xOff of [-2.3, 2.3]) {
-            const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 2.2), materials.woodLight);
-            pole.position.set(xOff, 2.9, 0);
+        for(let xOff of [-2, 2]) {
+            const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 2), materials.woodLight);
+            pole.position.set(xOff, 2.6, 0);
             marketGroup.add(pole);
         }
 
-        // Crates
         function createCrate(x, z) {
-            const crate = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, 1.2), materials.woodLight);
-            crate.position.set(x, 0.6, z);
+            const crate = new THREE.Mesh(new THREE.BoxGeometry(1.1, 1.1, 1.1), materials.woodLight);
+            crate.position.set(x, 0.55, z);
             crate.castShadow = true;
             marketGroup.add(crate);
         }
-        createCrate(-3.5, 1);
-        createCrate(-3.5, -0.5);
-        createCrate(3.5, 0.5);
+        createCrate(-3, 0.8);
+        createCrate(3, 0.4);
         scene.add(marketGroup);
 
-        // 3. SAKURA TREE & PICNIC (West Island)
         const sakuraGroup = new THREE.Group();
-        sakuraGroup.position.set(-42, 0, 12);
+        sakuraGroup.position.set(-31, 0, 5);
 
-        const sTrunk = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.9, 4, 8), materials.wood);
-        sTrunk.position.y = 2;
+        const sTrunk = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.8, 3.5, 8), materials.wood);
+        sTrunk.position.y = 1.75;
         sTrunk.castShadow = true;
         sakuraGroup.add(sTrunk);
 
-        const sLeaves1 = new THREE.Mesh(new THREE.DodecahedronGeometry(3.5), materials.sakuraLeaf);
-        sLeaves1.position.y = 5.5;
+        const sLeaves1 = new THREE.Mesh(new THREE.DodecahedronGeometry(3.2), materials.sakuraLeaf);
+        sLeaves1.position.y = 5;
         sLeaves1.castShadow = true;
         sakuraGroup.add(sLeaves1);
 
-        const sLeaves2 = new THREE.Mesh(new THREE.DodecahedronGeometry(2.5), materials.sakuraLeaf);
-        sLeaves2.position.set(1.5, 4.5, 1);
-        sakuraGroup.add(sLeaves2);
-
-        // Bench
-        const bench = new THREE.Mesh(new THREE.BoxGeometry(3, 0.8, 1.2), materials.wood);
-        bench.position.set(3, 0.4, -2);
+        const bench = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.7, 1), materials.wood);
+        bench.position.set(2.5, 0.35, -1.5);
         bench.castShadow = true;
         sakuraGroup.add(bench);
 
         scene.add(sakuraGroup);
 
-        // Trees & Rocks on Main Island
         function createTree(x, z, scale=1) {
             const group = new THREE.Group();
             const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.5, 2.2), materials.wood);
@@ -565,12 +793,11 @@
             group.scale.set(scale, scale, scale);
             scene.add(group);
         }
-        createTree(-16, -12, 1.2);
-        createTree(16, -14, 1.1);
-        createTree(-18, 12, 1.3);
-        createTree(18, 14, 1.0);
+        createTree(-14, -10, 1.1);
+        createTree(14, -12, 1.0);
+        createTree(-15, 10, 1.2);
+        createTree(15, 12, 1.0);
 
-        // Rocks & Flower Patches
         function createRock(x, z, s) {
             const mesh = new THREE.Mesh(new THREE.DodecahedronGeometry(s, 0), materials.stone);
             mesh.position.set(x, s*0.4, z);
@@ -578,30 +805,10 @@
             mesh.castShadow = true;
             scene.add(mesh);
         }
-        createRock(-12, 16, 0.9);
-        createRock(15, 6, 0.7);
-        createRock(-14, -18, 1.1);
+        createRock(-11, 14, 0.8);
+        createRock(13, 5, 0.6);
 
-        // Fences around main island
-        function createFence(x, z, rot) {
-            const group = new THREE.Group();
-            const p1 = new THREE.Mesh(new THREE.BoxGeometry(0.2, 1.2, 0.2), materials.woodLight);
-            p1.position.set(-1, 0.6, 0);
-            const p2 = p1.clone();
-            p2.position.set(1, 0.6, 0);
-            const rail = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.15, 0.1), materials.woodLight);
-            rail.position.set(0, 0.8, 0);
-            group.add(p1, p2, rail);
-            group.position.set(x, 0, z);
-            group.rotation.y = rot;
-            scene.add(group);
-        }
-        createFence(-8, -12, 0);
-        createFence(-5.8, -12, 0);
-        createFence(8, -12, 0);
-        createFence(10.2, -12, 0);
-
-        // --- HOUSE (Upgradable) ---
+        // --- HOUSE ---
         let houseGroup = new THREE.Group();
         scene.add(houseGroup);
         houseGroup.position.set(-3, 0, -10);
@@ -640,7 +847,6 @@
             door.position.set(0, 1.25, baseGeo.parameters.depth/2 + 0.08);
             houseGroup.add(door);
 
-            // Lantern light near door
             const lantern = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.5, 0.4), new THREE.MeshBasicMaterial({ color: 0xfacc15 }));
             lantern.position.set(1.2, 2.2, baseGeo.parameters.depth/2 + 0.2);
             houseGroup.add(lantern);
@@ -679,13 +885,11 @@
         // --- CUTE CHIBI FARMER CHARACTER ---
         const farmer = new THREE.Group();
         
-        // Head
         const fHead = new THREE.Mesh(new THREE.SphereGeometry(0.65, 16, 16), materials.skin);
         fHead.position.y = 1.9;
         fHead.castShadow = true;
         farmer.add(fHead);
 
-        // Straw Hat
         const hatBrim = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 0.08, 16), materials.strawHat);
         hatBrim.position.y = 2.35;
         farmer.add(hatBrim);
@@ -693,7 +897,6 @@
         hatCrown.position.y = 2.65;
         farmer.add(hatCrown);
 
-        // Eyes
         const eyeMat = new THREE.MeshBasicMaterial({ color: 0x1e293b });
         const eyeGeo = new THREE.SphereGeometry(0.08, 8, 8);
         const leftEye = new THREE.Mesh(eyeGeo, eyeMat);
@@ -703,13 +906,11 @@
         rightEye.position.set(0.2, 2.0, 0.55);
         farmer.add(rightEye);
 
-        // Body (Shirt & Overalls)
         const fBody = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.9, 0.5), materials.overalls);
         fBody.position.y = 1.1;
         fBody.castShadow = true;
         farmer.add(fBody);
 
-        // Arms
         const armGeo = new THREE.CylinderGeometry(0.12, 0.12, 0.7);
         const leftArm = new THREE.Mesh(armGeo, materials.shirt);
         leftArm.position.set(-0.55, 1.1, 0);
@@ -718,7 +919,6 @@
         rightArm.position.set(0.55, 1.1, 0);
         farmer.add(rightArm);
 
-        // Legs & Boots
         const legGeo = new THREE.CylinderGeometry(0.14, 0.14, 0.6);
         const leftLeg = new THREE.Mesh(legGeo, materials.wood);
         leftLeg.position.set(-0.25, 0.3, 0);
@@ -730,37 +930,32 @@
         farmer.position.set(0, 0, 12);
         scene.add(farmer);
 
-        // --- FARM PLOTS (3 cols x 4 rows) ---
+        // --- FARM PLOTS (Solid 3D Box Geometry for guaranteed clicking) ---
         const plots = [];
         const plotGroup = new THREE.Group();
-        plotGroup.position.set(0, 0.05, 4); 
+        plotGroup.position.set(0, 0, 4); 
         scene.add(plotGroup);
 
-        const plotSize = 2.8;
+        const plotWidth = 2.8;
+        const plotHeight = 0.3;
         const plotSpacing = 3.2;
-        const plotGeo = new THREE.PlaneGeometry(plotSize, plotSize);
+        const plotGeo = new THREE.BoxGeometry(plotWidth, plotHeight, plotWidth);
         
         for(let i=0; i<Game.maxPlots; i++) {
             const col = i % 3;
             const row = Math.floor(i / 3);
             
-            const plotMat = (i < Game.activePlots) ? materials.plotEmpty : materials.plotLocked;
+            const plotMat = (i < Game.activePlots) ? new THREE.MeshLambertMaterial({ color: 0x854d0e }) : materials.plotLocked;
             const mesh = new THREE.Mesh(plotGeo, plotMat);
-            mesh.rotation.x = -Math.PI / 2;
-            mesh.position.set((col - 1) * plotSpacing, 0, (row - 1.5) * plotSpacing);
+            mesh.position.set((col - 1) * plotSpacing, plotHeight / 2, (row - 1.5) * plotSpacing);
             mesh.receiveShadow = true;
-            
-            const borderGeo = new THREE.BoxGeometry(plotSize + 0.2, 0.1, plotSize + 0.2);
-            const border = new THREE.Mesh(borderGeo, materials.wood);
-            border.position.y = -0.05;
-            mesh.add(border);
+            mesh.castShadow = true;
 
             mesh.userData = { id: i, state: (i < Game.activePlots) ? 'empty' : 'locked', plantType: null, progress: 0, meshObj: null, barObj: null };
             plotGroup.add(mesh);
             plots.push(mesh);
         }
 
-        // Plants Geometry Cache
         const plantGeos = {
             sphere: new THREE.SphereGeometry(0.7, 16, 16),
             cone: new THREE.ConeGeometry(0.6, 1.5, 16),
@@ -828,20 +1023,30 @@
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
 
-        window.addEventListener('click', onMouseClick);
-        window.addEventListener('mousemove', (e) => {
-            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-        });
+        const keys = { w: false, a: false, s: false, d: false };
 
-        const keys = { w: false, a: false, s: false, d: false, ArrowUp: false, ArrowLeft: false, ArrowDown: false, ArrowRight: false };
-        window.addEventListener('keydown', (e) => { if(keys.hasOwnProperty(e.key)) keys[e.key] = true; });
-        window.addEventListener('keyup', (e) => { if(keys.hasOwnProperty(e.key)) keys[e.key] = false; });
+        function updateKey(e, isPressed) {
+            const k = (e.key || '').toLowerCase();
+            const code = e.code || '';
+            if (k === 'w' || code === 'KeyW' || code === 'ArrowUp') keys.w = isPressed;
+            if (k === 's' || code === 'KeyS' || code === 'ArrowDown') keys.s = isPressed;
+            if (k === 'a' || code === 'KeyA' || code === 'ArrowLeft') keys.a = isPressed;
+            if (k === 'd' || code === 'KeyD' || code === 'ArrowRight') keys.d = isPressed;
+        }
+
+        window.addEventListener('keydown', (e) => updateKey(e, true));
+        window.addEventListener('keyup', (e) => updateKey(e, false));
+
+        window.addEventListener('click', onMouseClick);
 
         function onMouseClick(event) {
-            if(event.target.closest('.panel') || event.target.closest('#audio-overlay') || event.target.closest('#bottom-guide')) return;
+            if(event.target.closest('.panel') || event.target.closest('#auth-overlay') || event.target.closest('#bottom-guide')) return;
+
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
             raycaster.setFromCamera(mouse, camera);
-            
+
+            // Check Well click
             const wellIntersects = raycaster.intersectObjects(well.children);
             if(wellIntersects.length > 0) {
                 if(Game.wellState === 'ready') openQuiz();
@@ -852,6 +1057,7 @@
                 return;
             }
 
+            // Check Plots click
             const intersects = raycaster.intersectObjects(plots);
             if (intersects.length > 0) {
                 const plotMesh = intersects[0].object;
@@ -872,7 +1078,7 @@
 
                         const pMat = new THREE.MeshLambertMaterial({ color: seedData.color });
                         const pMesh = new THREE.Mesh(plantGeos[seedData.geo], pMat);
-                        pMesh.position.y = 0.5;
+                        pMesh.position.y = plotHeight / 2 + 0.4;
                         pMesh.scale.set(0.1, 0.1, 0.1);
                         pMesh.castShadow = true;
                         plotMesh.add(pMesh);
@@ -887,7 +1093,7 @@
                         fgBar.scale.x = 0.01; 
                         barGroup.add(bgBar);
                         barGroup.add(fgBar);
-                        barGroup.position.y = 1.5;
+                        barGroup.position.y = plotHeight / 2 + 1.6;
                         plotMesh.add(barGroup);
                         plot.barObj = barGroup;
 
@@ -907,7 +1113,7 @@
                     plot.state = 'empty';
                     plot.plantType = null;
                     plot.meshObj = null;
-                    plotMesh.material = materials.plotEmpty;
+                    plotMesh.material = new THREE.MeshLambertMaterial({ color: 0x854d0e });
                 } else if (plot.state === 'locked') {
                     showFloatingText("ช่องยังไม่ปลดล็อค", "#94a3b8", event.clientX, event.clientY);
                 }
@@ -915,11 +1121,6 @@
         }
 
         // --- UI LOGIC ---
-        function initGame() {
-            document.getElementById('audio-overlay').style.display = 'none';
-            setupAudio();
-        }
-
         function updateUI() {
             document.getElementById('ui-money').innerText = Game.money;
             document.getElementById('ui-inventory').innerText = inventoryItems.length;
@@ -970,7 +1171,7 @@
                 Game.money -= 150;
                 const plot = plots[Game.activePlots];
                 plot.userData.state = 'empty';
-                plot.material = materials.plotEmpty;
+                plot.material = new THREE.MeshLambertMaterial({ color: 0x854d0e });
                 Game.activePlots++;
                 updateUI();
                 playSound('sell');
@@ -1049,32 +1250,29 @@
 
             controls.update();
 
-            // Windmill animation
             bladesGroup.rotation.z += dt * 0.8;
 
-            // Farmer Movement (WASD / Arrows)
-            const moveSpeed = 14 * dt;
+            // Farmer Movement
+            const moveSpeed = 16 * dt;
             let moveX = 0;
             let moveZ = 0;
-            if (keys.w || keys.ArrowUp) moveZ -= 1;
-            if (keys.s || keys.ArrowDown) moveZ += 1;
-            if (keys.a || keys.ArrowLeft) moveX -= 1;
-            if (keys.d || keys.ArrowRight) moveX += 1;
+            if (keys.w) moveZ -= 1;
+            if (keys.s) moveZ += 1;
+            if (keys.a) moveX -= 1;
+            if (keys.d) moveX += 1;
 
             if (moveX !== 0 || moveZ !== 0) {
                 const len = Math.sqrt(moveX*moveX + moveZ*moveZ);
                 farmer.position.x += (moveX / len) * moveSpeed;
                 farmer.position.z += (moveZ / len) * moveSpeed;
                 
-                // Boundaries limit
-                const limit = 45;
+                const limit = 38;
                 farmer.position.x = THREE.MathUtils.clamp(farmer.position.x, -limit, limit);
                 farmer.position.z = THREE.MathUtils.clamp(farmer.position.z, -limit, limit);
 
                 farmer.rotation.y = Math.atan2(moveX, moveZ);
-                farmer.position.y = Math.abs(Math.sin(time * 14)) * 0.35; // Cute walk bobbing
+                farmer.position.y = Math.abs(Math.sin(time * 14)) * 0.35;
 
-                // Arm & Leg walking animation
                 leftArm.rotation.x = Math.sin(time * 14) * 0.6;
                 rightArm.rotation.x = -Math.sin(time * 14) * 0.6;
                 leftLeg.rotation.x = -Math.sin(time * 14) * 0.6;
