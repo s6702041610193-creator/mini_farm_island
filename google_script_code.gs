@@ -1,9 +1,9 @@
-// ==========================================
+// ================================================================
 // GOOGLE APPS SCRIPT BACKEND CODE (Code.gs)
 // Sheet ID: 1SvjrbVQiXKv1kCUbX6pBzijYMchQfDzULd-mvmB89M9zfEhIZ6gAvPvv
-// ==========================================
+// ================================================================
 
-function doPost(e) {
+function processRequest(data) {
   var lock = LockService.getScriptLock();
   lock.tryLock(10000);
   
@@ -11,20 +11,18 @@ function doPost(e) {
     var sheetId = '1SvjrbVQiXKv1kCUbX6pBzijYMchQfDzULd-mvmB89M9zfEhIZ6gAvPvv';
     var ss = SpreadsheetApp.openById(sheetId);
     
-    // Ensure required sheets exist
     var usersSheet = getOrCreateSheet(ss, 'Users', ['Timestamp', 'Username', 'Password', 'Name']);
     var logsSheet = getOrCreateSheet(ss, 'Logs', ['Timestamp', 'Username', 'Action']);
     var savesSheet = getOrCreateSheet(ss, 'Saves', ['Timestamp', 'Username', 'SaveData']);
     
-    var data = JSON.parse(e.postData.contents);
     var action = data.action;
     
+    // 1. Register
     if (action === 'register') {
       var username = data.username;
       var password = data.password;
       var name = data.name;
       
-      // Check existing user
       var users = usersSheet.getDataRange().getValues();
       for (var i = 1; i < users.length; i++) {
         if (users[i][1] === username) {
@@ -37,6 +35,7 @@ function doPost(e) {
       return responseJSON({ status: 'success', message: 'สมัครสมาชิกสำเร็จ' });
     }
     
+    // 2. Login
     else if (action === 'login') {
       var username = data.username;
       var password = data.password;
@@ -58,11 +57,13 @@ function doPost(e) {
       }
     }
     
+    // 3. Log Activity
     else if (action === 'log_login') {
       logsSheet.appendRow([new Date(), data.username, 'LOGIN_ACTIVITY']);
       return responseJSON({ status: 'success' });
     }
     
+    // 4. Save Game
     else if (action === 'save_game') {
       var username = data.username;
       var saveData = data.saveData;
@@ -87,6 +88,7 @@ function doPost(e) {
       return responseJSON({ status: 'success', message: 'บันทึกข้อมูลเรียบร้อย' });
     }
     
+    // 5. Load Game
     else if (action === 'load_game') {
       var username = data.username;
       var saves = savesSheet.getDataRange().getValues();
@@ -108,8 +110,25 @@ function doPost(e) {
   }
 }
 
+function doPost(e) {
+  try {
+    var data = JSON.parse(e.postData.contents);
+    return processRequest(data);
+  } catch (err) {
+    return responseJSON({ status: 'error', message: err.toString() });
+  }
+}
+
 function doGet(e) {
-  return ContentService.createTextOutput("Mini Farm Island API Active");
+  if (e && e.parameter && e.parameter.payload) {
+    try {
+      var data = JSON.parse(e.parameter.payload);
+      return processRequest(data);
+    } catch(err) {
+      return responseJSON({ status: 'error', message: err.toString() });
+    }
+  }
+  return responseJSON({ status: 'active', message: 'Mini Farm Island Google Sheet API is running!' });
 }
 
 function getOrCreateSheet(ss, name, headers) {
