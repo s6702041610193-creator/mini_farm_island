@@ -383,6 +383,27 @@
         createIsland(8, 35, -15);
         createIsland(9, -20, 35);
 
+        // Bridges
+        function createBridge(x1, z1, x2, z2) {
+            const dx = x2 - x1;
+            const dz = z2 - z1;
+            const dist = Math.sqrt(dx*dx + dz*dz) - 13;
+            const cx = (x1 + x2) / 2;
+            const cz = (z1 + z2) / 2;
+            const angle = Math.atan2(dx, dz);
+            
+            const bridgeGeo = new THREE.BoxGeometry(3, 0.5, dist);
+            const bridge = new THREE.Mesh(bridgeGeo, materials.wood);
+            bridge.position.set(cx, -0.2, cz);
+            bridge.rotation.y = angle;
+            bridge.receiveShadow = true;
+            bridge.castShadow = true;
+            scene.add(bridge);
+        }
+        createBridge(0, 0, -35, -20);
+        createBridge(0, 0, 35, -15);
+        createBridge(0, 0, -20, 35);
+
         // Rocks
         function createRock(x, z, s) {
             const geo = new THREE.DodecahedronGeometry(s, 0);
@@ -655,7 +676,8 @@
         function toScreenPosition(obj, camera) {
             const vector = new THREE.Vector3();
             obj.getWorldPosition(vector);
-            if(obj === robot) vector.y += 4.5;
+            if(obj === well) vector.y += 5;
+            else if(obj === robot) vector.y += 4.5;
             else vector.y += 1;
             vector.project(camera);
             const x = (vector.x * .5 + .5) * window.innerWidth;
@@ -674,6 +696,10 @@
             mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
         });
 
+        const keys = { w: false, a: false, s: false, d: false, ArrowUp: false, ArrowLeft: false, ArrowDown: false, ArrowRight: false };
+        window.addEventListener('keydown', (e) => { if(keys.hasOwnProperty(e.key)) keys[e.key] = true; });
+        window.addEventListener('keyup', (e) => { if(keys.hasOwnProperty(e.key)) keys[e.key] = false; });
+
         // We need an array for inventory
         let inventoryItems = [];
 
@@ -681,8 +707,8 @@
             if(event.target.closest('.panel') || event.target.closest('#audio-overlay') || event.target.closest('#bottom-guide')) return;
             raycaster.setFromCamera(mouse, camera);
             
-            const robotIntersects = raycaster.intersectObject(rBody);
-            if(robotIntersects.length > 0) {
+            const wellIntersects = raycaster.intersectObjects(well.children);
+            if(wellIntersects.length > 0) {
                 if(Game.robotState === 'ready') openQuiz();
                 else if(Game.robotState === 'broken') {
                     playSound('error');
@@ -894,6 +920,25 @@
 
             controls.update();
 
+            // Robot Movement
+            let moveSpeed = 15 * dt;
+            let moveX = 0;
+            let moveZ = 0;
+            if (keys.w || keys.ArrowUp) moveZ -= 1;
+            if (keys.s || keys.ArrowDown) moveZ += 1;
+            if (keys.a || keys.ArrowLeft) moveX -= 1;
+            if (keys.d || keys.ArrowRight) moveX += 1;
+
+            if (moveX !== 0 || moveZ !== 0) {
+                const len = Math.sqrt(moveX*moveX + moveZ*moveZ);
+                robot.position.x += (moveX / len) * moveSpeed;
+                robot.position.z += (moveZ / len) * moveSpeed;
+                robot.rotation.y = Math.atan2(moveX, moveZ);
+                robot.position.y = Math.abs(Math.sin(time * 15)) * 0.5;
+            } else {
+                robot.position.y = 0;
+            }
+
             const positions = waterGeo.attributes.position;
             for (let i = 0; i < waterVertices.length; i++) {
                 const v = waterVertices[i];
@@ -961,7 +1006,7 @@
             });
 
             const rLabel = document.getElementById('robot-label');
-            const rPos = toScreenPosition(robot, camera);
+            const rPos = toScreenPosition(well, camera);
             
             if(rPos.z < 1) { 
                 rLabel.style.display = 'block';
@@ -985,28 +1030,22 @@
                 Game.robotTimer -= dt;
                 if(Game.robotTimer <= 0) {
                     Game.robotState = 'ready';
-                    robot.rotation.y = 0;
                 } else {
                     if(Game.robotState === 'broken') {
-                        rLabel.innerText = `พัง! (${Math.ceil(Game.robotTimer)})`;
+                        rLabel.innerText = `บ่อน้ำแห้ง! (${Math.ceil(Game.robotTimer)})`;
                         rLabel.style.color = '#e74c3c';
                         rLabel.style.borderColor = '#e74c3c';
-                        robot.position.x = -10 + (Math.random()-0.5)*0.1;
-                        if(Math.random() > 0.8) createSparks(-10, 2, 1);
+                        if(Math.random() > 0.8) createSparks(well.position.x, 3, well.position.z);
                     } else if(Game.robotState === 'buff') {
                         rLabel.innerText = `รดน้ำ 💦 (${Math.ceil(Game.robotTimer)})`;
                         rLabel.style.color = '#3498db';
                         rLabel.style.borderColor = '#3498db';
-                        robot.rotation.y += dt * 5;
                     }
                 }
             } else {
-                rLabel.innerText = "QUIZ 🤖";
-                rLabel.style.color = '#f1c40f';
-                rLabel.style.borderColor = '#f1c40f';
-                robot.position.x = -10;
-                robot.rotation.y = Math.sin(time) * 0.2; 
-                robot.position.y = Math.sin(time*2) * 0.1; 
+                rLabel.innerText = "บ่อน้ำ QUIZ 💧";
+                rLabel.style.color = '#3498db';
+                rLabel.style.borderColor = '#3498db';
             }
 
             renderer.render(scene, camera);
